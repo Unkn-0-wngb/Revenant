@@ -431,7 +431,7 @@ class ControlWindow:
         help_text = (
             f"The dashboard makes a local {controls.AI_PROFILE} profile by itself (no online account) and switches the AI to it "
             "whenever training starts. Its controls and settings are copied from your own profile.\n\n"
-            "The clicker presses the first profile in the game's list, so the AI's profile should be first."
+            "When a game opens, the clicker finds the AI's profile in the game's list and picks it for you."
         )
         help_label = self.label(tab, help_text, 9, self.c["muted"])
         help_label.config(wraplength=540)
