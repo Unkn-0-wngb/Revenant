@@ -143,7 +143,7 @@ function showLive(holder, view, wait) {
       return;
     }
     started = true;
-    import("./car.js?v=15").then((module) => module.mountCar(holder, view)).catch(() => holder.classList.add("failed"));
+    import("./car.js?v=16").then((module) => module.mountCar(holder, view)).catch(() => holder.classList.add("failed"));
   };
   if (wait) {
     new IntersectionObserver((entries, watcher) => {
@@ -159,9 +159,36 @@ function showLive(holder, view, wait) {
 }
 
 function loadCars() {
-  showLive(document.getElementById("hero-car"), { position: [1.95, 1.0, 3.9], height: 0.5, fov: 28, interactive: false, spin: 0 }, false);
+  showLive(document.getElementById("hero-car"), { position: [1.95, 1.0, 3.9], height: 0.5, fov: 28, fit: 0.68, interactive: false, spin: 0 }, false);
   showLive(document.getElementById("stage"), {}, true);
-  showLive(document.getElementById("rear-car"), { position: [-4.8, 1.6, 4.2], height: 0.55, interactive: false, spin: 0 }, true);
+  showLive(document.getElementById("rear-car"), { position: [-4.8, 1.6, 4.2], height: 0.55, fit: 0.72, interactive: false, spin: 0 }, true);
+}
+
+function controlTabs() {
+  const tabs = [...document.querySelectorAll(".tabs [role='tab']")];
+  const pick = (tab) => {
+    tabs.forEach((other) => {
+      const on = other === tab;
+      other.setAttribute("aria-selected", String(on));
+      other.tabIndex = on ? 0 : -1;
+      document.getElementById(other.getAttribute("aria-controls")).hidden = !on;
+    });
+    tab.focus();
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => pick(tab));
+    tab.addEventListener("keydown", (e) => {
+      let next = null;
+      if (e.key === "ArrowRight") next = tabs[(i + 1) % tabs.length];
+      if (e.key === "ArrowLeft") next = tabs[(i - 1 + tabs.length) % tabs.length];
+      if (e.key === "Home") next = tabs[0];
+      if (e.key === "End") next = tabs[tabs.length - 1];
+      if (next) {
+        e.preventDefault();
+        pick(next);
+      }
+    });
+  });
 }
 
 function guard() {
@@ -182,4 +209,5 @@ typeIn();
 fillBoard();
 filterBoard();
 trackSections();
+controlTabs();
 loadCars();

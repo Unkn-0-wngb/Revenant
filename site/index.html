@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;1,600;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -58,10 +58,11 @@
   <a class="bar-mark" href="#top" aria-label="Revenant, back to top"><img src="assets/wordmark.png" alt="Revenant" width="972" height="192"></a>
   <nav aria-label="Sections">
     <a href="#results">Results</a>
-    <a href="#car">The car</a>
     <a href="#how">How it learns</a>
+    <a href="#features">Features</a>
     <a href="#dashboard">Dashboard</a>
     <a href="#start">Get it</a>
+    <a href="#faq">Help</a>
     <a class="bar-git" href="https://github.com/Unkn-0-wngb/Revenant">GitHub</a>
   </nav>
 </header>
@@ -80,7 +81,11 @@
         <a class="button primary" href="https://github.com/Unkn-0-wngb/Revenant/releases/latest">Download Revenant</a>
         <a class="button" href="https://github.com/Unkn-0-wngb/Revenant">Read the code</a>
       </div>
-      <p class="fine">Free and open source. Windows with an NVIDIA graphics card.</p>
+      <ul class="specs">
+        <li>Free and open source</li>
+        <li>Windows 10 or 11</li>
+        <li>NVIDIA graphics card</li>
+      </ul>
     </div>
     <figure class="hero-car live" id="hero-car" role="img" aria-label="The Revenant car, matte black with twin teal stripes over the nose"></figure>
   </section>
@@ -88,12 +93,13 @@
   <section class="results" id="results">
     <div class="section-head">
       <h2>Where it's got to</h2>
-      <p>After 93 hours of training on one ordinary gaming PC, Revenant has finished <strong id="count-finished">40</strong> of the 65 official levels and beaten the author time on <strong id="count-author">3</strong>. Every time below is its own lap.</p>
+      <p>After 93 hours of training on one ordinary gaming PC, an i7-4770 with a GTX 1060, Revenant has finished <strong id="count-finished">40</strong> of the 65 official levels and beaten the author time on <strong id="count-author">3</strong>. Every time below is its own lap.</p>
     </div>
     <div class="tally">
       <p><b id="big-finished">40</b><span>of 65 levels finished</span></p>
       <p class="author"><b id="big-author">3</b><span>author times beaten</span></p>
       <p><b>93</b><span>hours of practice</span></p>
+      <p><b>31.6M</b><span>steps driven</span></p>
     </div>
     <div class="track" id="track" aria-hidden="true"></div>
     <div class="filter" role="group" aria-label="Show levels">
@@ -112,7 +118,7 @@
   <section class="garage" id="car">
     <div class="section-head">
       <h2>The car</h2>
-      <p>This is the Stadium car from the game, wearing Revenant's own skin, drawn live in your browser. Drag to turn it, scroll or pinch to zoom.</p>
+      <p>The Stadium car from the game in Revenant's own skin, drawn live in your browser. Drag to turn it, scroll or pinch to zoom. The dashboard installs the skin on a local Revenant profile, so this is what you'll see in game too.</p>
     </div>
     <div class="stage" id="stage" role="img" aria-label="A 3D model of the Revenant car you can turn and zoom, matte black with twin teal stripes and REVENANT on the side"></div>
   </section>
@@ -120,36 +126,172 @@
   <section class="story" id="how">
     <div class="section-head">
       <h2>How it learns</h2>
+      <p>It's reinforcement learning: try something, get a score, do more of what scored well. Revenant is built on <a href="https://github.com/Linesight-RL/linesight">Linesight</a> and talks to the game through TMInterface.</p>
     </div>
     <div class="split">
       <div class="prose">
-        <p>Twenty times a second Revenant gets a small grey picture of the screen, its speed, which wheels are touching the ground, and where the racing line goes next. It picks one of twelve key combinations. That's all it ever sees or does.</p>
+        <p>Twenty times a second the game pauses and Revenant gets a small grey picture of the screen, its speed, which wheels are touching the ground, and where the racing line goes next. It picks one of twelve key combinations. That's all it ever sees or does.</p>
         <p>It's rewarded for getting further along the line in less time, and nudged away from walls. At first it drives into the first barrier over and over. A few hours later it's finishing the easy levels, and then it starts shaving off tenths.</p>
-        <p>Under the hood it's an IQN reinforcement learning agent, built on <a href="https://github.com/Linesight-RL/linesight">Linesight</a>, talking to the game through TMInterface. Two copies of the game play at once while the learner trains on what they bring back.</p>
       </div>
       <figure class="shot live" id="rear-car" role="img" aria-label="The Revenant car side on, matte black with REVENANT on a teal side panel"></figure>
+    </div>
+
+    <ol class="flow" aria-label="How the pieces fit together">
+      <li>
+        <h3>Games</h3>
+        <p>Two copies of TrackMania run at once through TMLoader and TMInterface, which lets Python pause them, read the car and press keys.</p>
+      </li>
+      <li>
+        <h3>Collectors</h3>
+        <p>One per game. They drive with the newest network and send every finished run back.</p>
+      </li>
+      <li>
+        <h3>Learner</h3>
+        <p>Keeps recent runs in a replay memory and trains on them on the graphics card. Saves every 5 minutes.</p>
+      </li>
+      <li>
+        <h3>Level loop</h3>
+        <p>Works through all 65 levels in order, with a separate brain for each one.</p>
+      </li>
+    </ol>
+
+    <div class="facts">
+      <div>
+        <h3>What it sees, every 50&nbsp;ms</h3>
+        <ul class="ticks">
+          <li>A 160&times;120 greyscale picture of the screen</li>
+          <li>Speed, rotation and how fast it's turning</li>
+          <li>Each wheel: on the ground, sliding, and what surface</li>
+          <li>Gear and engine revs</li>
+          <li>Its last 5 key presses</li>
+          <li>The next 400&nbsp;m of the racing line, as 40 points</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What it's scored on</h3>
+        <table class="score">
+          <tbody>
+            <tr><th scope="row">Every metre further along the line</th><td class="up">+0.01</td></tr>
+            <tr><th scope="row">Every 50&nbsp;ms that passes</th><td class="down">&minus;0.06</td></tr>
+            <tr><th scope="row">Every 50&nbsp;ms touching a wall</th><td class="down">&minus;0.3</td></tr>
+            <tr><th scope="row">Flipping the steering left to right</th><td class="down">&minus;0.02</td></tr>
+            <tr><th scope="row">A good speedslide</th><td class="up">+0.01</td></tr>
+            <tr><th scope="row">Passing a real checkpoint</th><td class="up">+3</td></tr>
+          </tbody>
+        </table>
+        <p class="small">So the way to score the most is to finish as fast as possible without scraping walls. Progress can't go past a checkpoint until the game itself counts it, after it learned to cut past a ring on A01.</p>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="prose">
+        <h3>One level at a time</h3>
+        <p>Revenant aims for the author time on every level. It stays on a level until it has finished it at least 10 times, had its 150k steps, and then either beaten author or stopped improving for 100k steps. A level it can't finish gives up after 600k steps and gets another go next time round.</p>
+        <p>Every 5 runs it replays one of its own best laps, and every 20 one from another level, so it doesn't forget how it got fast.</p>
+      </div>
+      <figure class="shot">
+        <img src="assets/levels.png" alt="The Levels window: every official level with author medals in teal, gaps to author on finished ones, and levels not reached yet" width="820" height="928" loading="lazy">
+      </figure>
     </div>
 
     <div class="split flip">
       <div class="prose">
         <h3>When it gets stuck</h3>
         <p>D02 has a hairpin that Revenant hit the wall on for five hours straight. Practising from the start every time meant it barely got any tries at the corner itself.</p>
-        <p>So a spare copy of the game builds a lap out of Revenant's own controls, following the record line one 50&nbsp;ms step at a time and checking every step replays exactly. Then Revenant starts runs from random points along that lap and takes over the wheel. It finished D02 minutes after the first one.</p>
+        <dl class="tools">
+          <dt>Lap follower</dt>
+          <dd>A spare game builds a lap out of Revenant's own controls, following the record line one 50&nbsp;ms step at a time and replaying from the start to check every step plays back exactly.</dd>
+          <dt>Demo starts</dt>
+          <dd>Play that lap up to a random point, then hand Revenant the wheel, so it practises the hard part from a good approach. It finished D02 minutes after these were turned on.</dd>
+          <dt>Bruteforce</dt>
+          <dd>Randomly tweaks a few inputs of a finished lap and keeps anything faster. It took A07 from 26.52 to 26.51.</dd>
+        </dl>
       </div>
       <figure class="shot">
         <img src="assets/controls_run.png" alt="The Run tab in Revenant's controls, with demo starts, the lap follower and bruteforce" width="680" height="740" loading="lazy">
       </figure>
+    </div>
+
+    <p class="more"><a href="https://github.com/Unkn-0-wngb/Revenant/blob/main/docs/HOW_IT_WORKS.md">The full write-up, with every setting, is in HOW_IT_WORKS.md</a></p>
+  </section>
+
+  <section class="features" id="features">
+    <div class="section-head">
+      <h2>What it can do</h2>
+      <p>Everything it took to get Revenant this far comes with it.</p>
+    </div>
+    <div class="columns">
+      <div>
+        <h3>Learning</h3>
+        <ul class="ticks">
+          <li>Works through every official level in order, aiming for author on each</li>
+          <li>A separate brain per level, so coming back carries on where it stopped</li>
+          <li>Focus on one level until it beats a time you choose</li>
+          <li>Wall penalties, a speedslide reward and checkpoint gates tuned for Trackmania</li>
+          <li>Replays its best laps so it doesn't forget them</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Getting unstuck</h3>
+        <ul class="ticks">
+          <li>Lap follower that builds exact, replayable laps from the record line</li>
+          <li>Demo starts from any point along that lap</li>
+          <li>Bruteforce to shave time off a finished lap</li>
+          <li>Turns any lap into a video and a TMInterface <code>.inputs</code> file</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Running it</h3>
+        <ul class="ticks">
+          <li>Benchmarks your PC and picks settings to suit it</li>
+          <li>Stops safely, it waits for a save so nothing's lost</li>
+          <li>Plays as its own local Revenant profile, no online account</li>
+          <li>Clicks new games past the profile screen so long runs carry on without you</li>
+          <li>Every training setting editable while it runs</li>
+        </ul>
+      </div>
     </div>
   </section>
 
   <section class="dash" id="dashboard">
     <div class="section-head">
       <h2>One window runs all of it</h2>
-      <p>Revenant comes with a dashboard that sets up everything on your PC, benchmarks your graphics card and picks settings to suit it. Then it starts and stops training, shows every lap as it happens, and draws the fastest one on the map, coloured by speed.</p>
+      <p>The dashboard sets everything up, starts and stops training, shows every lap as it happens, and draws the fastest one on the map, coloured by speed.</p>
     </div>
     <figure class="frame">
       <img src="assets/dashboard.png" alt="The Revenant dashboard showing lap times, finish rate, wall touches and the fastest lap on the D02 map" width="1400" height="820" loading="lazy">
     </figure>
+
+    <div class="panels">
+      <h3>The controls</h3>
+      <div class="tabs" role="tablist" aria-label="Controls tabs">
+        <button type="button" role="tab" id="tab-setup" aria-controls="panel-setup" aria-selected="true">Setup</button>
+        <button type="button" role="tab" id="tab-run" aria-controls="panel-run" aria-selected="false" tabindex="-1">Run</button>
+        <button type="button" role="tab" id="tab-machine" aria-controls="panel-machine" aria-selected="false" tabindex="-1">Machine</button>
+        <button type="button" role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
+        <button type="button" role="tab" id="tab-profile" aria-controls="panel-profile" aria-selected="false" tabindex="-1">Profile</button>
+      </div>
+      <div class="panel" role="tabpanel" id="panel-setup" aria-labelledby="tab-setup">
+        <img src="assets/controls_setup.png" alt="The Setup tab with a checklist of everything Revenant needs" width="680" height="740" loading="lazy">
+        <p>Checks the game, TMLoader, the TMInterface plugin, the official maps, the trained models, the Revenant profile, network ports and the benchmark. Anything missing gets a button, and <em>Fix everything I can</em> does the ones that don't need you.</p>
+      </div>
+      <div class="panel" role="tabpanel" id="panel-run" aria-labelledby="tab-run" hidden>
+        <img src="assets/controls_run.png" alt="The Run tab with start and stop, focus level, demo starts, the lap follower and bruteforce" width="680" height="740" loading="lazy">
+        <p>Starts and stops training, sets a focus level, and runs demo starts, the lap follower and bruteforce.</p>
+      </div>
+      <div class="panel" role="tabpanel" id="panel-machine" aria-labelledby="tab-machine" hidden>
+        <img src="assets/controls_machine.png" alt="The Machine tab showing the PC's hardware, benchmark timings and recommended settings" width="680" height="740" loading="lazy">
+        <p>Shows your CPU, RAM and graphics card, times a real training batch on your GPU, and recommends how many games to run, the batch size, replay memory and game speed. One button applies them.</p>
+      </div>
+      <div class="panel" role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" hidden>
+        <img src="assets/controls_settings.png" alt="The Settings tab with a searchable list of training values" width="680" height="740" loading="lazy">
+        <p>Every training value, searchable, with notes. Changes reach a running AI within about a minute, and it won't let you shrink the memory mid-run, because that crashes it.</p>
+      </div>
+      <div class="panel" role="tabpanel" id="panel-profile" aria-labelledby="tab-profile" hidden>
+        <img src="assets/controls_profile.png" alt="The Profile tab for picking and dressing the Trackmania profile the AI drives with" width="680" height="740" loading="lazy">
+        <p>Picks which Trackmania profile the AI drives with, and can make and dress the Revenant profile with its logo and car.</p>
+      </div>
+    </div>
   </section>
 
   <section class="start" id="start">
@@ -160,21 +302,93 @@
     <ol class="steps">
       <li>
         <h3>Download</h3>
-        <p>Grab the code from GitHub. It starts learning from nothing. For the trained Revenant, also download the zips from the latest release.</p>
+        <p>Grab the code from GitHub. Out of the box it learns from nothing. For the trained Revenant, also get the zips from the latest release.</p>
       </li>
       <li>
         <h3>Open Revenant.bat</h3>
-        <p>The first time, it installs Python and the AI's libraries, about 3&nbsp;GB. After that it opens straight to the dashboard.</p>
+        <p>The first time, it installs Python 3.11 if you need it and the AI's libraries, about 3&nbsp;GB. After that it opens straight to the dashboard.</p>
       </li>
       <li>
         <h3>Follow the Setup tab</h3>
-        <p>It checks the game, the mod loader, the maps and your PC, with a button next to anything missing. Then press Start.</p>
+        <p>It checks the game, the mod loader, the maps and your PC, with a button next to anything missing. Then press Start on the Run tab.</p>
       </li>
     </ol>
     <div class="actions">
       <a class="button primary" href="https://github.com/Unkn-0-wngb/Revenant/releases/latest">Download Revenant</a>
-      <a class="button" href="https://github.com/Unkn-0-wngb/Revenant/blob/main/docs/TROUBLESHOOTING.md">Troubleshooting</a>
+      <a class="button" href="https://github.com/Unkn-0-wngb/Revenant/archive/refs/heads/main.zip">Source zip</a>
     </div>
+
+    <div class="pair">
+      <div>
+        <h3>Fresh or pretrained</h3>
+        <p>The code has no trained data in it, so a fresh copy learns every level from scratch, the same way Revenant did. That takes days before it's finishing levels. Everything Revenant has learned is on the <a href="https://github.com/Unkn-0-wngb/Revenant/releases/latest">v1.0 release</a>.</p>
+        <table class="spec">
+          <thead><tr><th scope="col">File</th><th scope="col">What's in it</th><th scope="col">Size</th></tr></thead>
+          <tbody>
+            <tr><td><code>revenant_core.zip</code></td><td>The main brain and its training progress</td><td>49&nbsp;MB</td></tr>
+            <tr><td><code>revenant_levels_A.zip</code> to <code>D.zip</code></td><td>One brain per level it's trained on</td><td>1.15&nbsp;GB</td></tr>
+            <tr><td><code>revenant_laps.zip</code></td><td>The D02 demo lap and the bruteforced A07 lap</td><td>1&nbsp;KB</td></tr>
+          </tbody>
+        </table>
+        <p class="small">Put them in a <code>models</code> folder next to <code>Revenant.bat</code> and press <em>Install</em> next to <em>Trained models</em> on the Setup tab. It carries on from exactly where Revenant is.</p>
+      </div>
+      <div>
+        <h3>What you need</h3>
+        <table class="spec">
+          <thead><tr><td></td><th scope="col">Minimum</th><th scope="col">Revenant's PC</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Graphics</th><td>NVIDIA, 4&nbsp;GB, GTX 10 series or newer</td><td>GTX 1060 6GB</td></tr>
+            <tr><th scope="row">CPU</th><td>4 threads</td><td>i7-4770</td></tr>
+            <tr><th scope="row">RAM</th><td>8&nbsp;GB</td><td>12&nbsp;GB</td></tr>
+            <tr><th scope="row">Disk</th><td>10&nbsp;GB free</td><td></td></tr>
+            <tr><th scope="row">System</th><td>Windows 10 or 11</td><td>Windows 11</td></tr>
+          </tbody>
+        </table>
+        <p class="small">RTX 50 series cards need a newer PyTorch than the AI is pinned to, so they won't work yet. AMD and Intel graphics can't run it, it needs CUDA.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" id="faq">
+    <div class="section-head">
+      <h2>If something goes wrong</h2>
+      <p>Start with the Setup tab, most problems show up there with a button next to them. These are the others that came up.</p>
+    </div>
+    <div class="qs">
+      <details>
+        <summary>My antivirus deleted or blocked TMLoader</summary>
+        <p>TMLoader injects into the game, which looks suspicious to antivirus programs, but it's a false positive. Add <code>%LocalAppData%\TMLoader</code> as an exception.</p>
+      </details>
+      <details>
+        <summary>Revenant.bat closes straight away</summary>
+        <p>Run <code>powershell -ExecutionPolicy Bypass -File .\setup.ps1</code> so you can read the error. It's usually no internet (it downloads about 3&nbsp;GB) or winget missing on old Windows 10, in which case install Python 3.11 from python.org yourself.</p>
+      </details>
+      <details>
+        <summary>Training stops with "CUDA error: out of memory"</summary>
+        <p>Something else used the graphics memory, usually Discord, the Xbox Game Bar, a browser or a game. Close them and start again, or lower the batch size or number of games on the Machine tab.</p>
+      </details>
+      <details>
+        <summary>The games stay on "Select your Profile"</summary>
+        <p>The clicker presses the Revenant row about 25 seconds after a game opens. Check the Profile tab says <em>Now driving as: Revenant</em>, delete profiles you don't use if the list scrolls, and look at <code>logs/auto_click.log</code>.</p>
+      </details>
+      <details>
+        <summary>The games open fullscreen</summary>
+        <p>Run <code>TmForeverLauncher.exe</code> in the game folder once, choose windowed mode and save.</p>
+      </details>
+      <details>
+        <summary>The dashboard says "Stalled"</summary>
+        <p>The training log hasn't changed for 10 minutes, usually a frozen game or one stuck on a dialog. Use <em>Stop now</em>, close any games still open and start again. It carries on from the last save.</p>
+      </details>
+      <details>
+        <summary>It's stuck at the same point on a level for hours</summary>
+        <p>Start the lap follower on that level, then demo starts with a step range a bit before the hard part, and set focus to that level so the loop stays there.</p>
+      </details>
+      <details>
+        <summary>Does it play online?</summary>
+        <p>No. It trains offline on its own local profile, so none of its times touch the real leaderboards.</p>
+      </details>
+    </div>
+    <p class="more"><a href="https://github.com/Unkn-0-wngb/Revenant/blob/main/docs/TROUBLESHOOTING.md">Everything else is in TROUBLESHOOTING.md</a></p>
   </section>
 
   <section class="credits">
@@ -188,7 +402,7 @@
         <li><strong>Unnamed477</strong>, for his own runs of the levels, which Revenant learned its best lines from.</li>
         <li><strong>The Linesight team</strong>, whose AI Revenant is built on.</li>
         <li><strong>donadigo</strong> for TMInterface and <strong>Tomashu</strong> for TMLoader.</li>
-        <li><strong>TMX</strong> for the record replays.</li>
+        <li><strong><a href="https://tmnf.exchange">TMX</a></strong> for the record replays.</li>
       </ul>
     </div>
   </section>
@@ -200,6 +414,7 @@
   <nav class="foot-links" aria-label="More">
     <a href="https://github.com/Unkn-0-wngb/Revenant/releases">Releases</a>
     <a href="https://github.com/Unkn-0-wngb/Revenant/blob/main/docs/HOW_IT_WORKS.md">How it works</a>
+    <a href="https://github.com/Unkn-0-wngb/Revenant/blob/main/docs/TROUBLESHOOTING.md">Troubleshooting</a>
     <a href="https://github.com/Unkn-0-wngb/Revenant">GitHub</a>
   </nav>
 </footer>
@@ -212,6 +427,6 @@
   }
 }
 </script>
-<script src="main.js?v=8" defer></script>
+<script src="main.js?v=9" defer></script>
 </body>
 </html>

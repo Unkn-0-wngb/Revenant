@@ -137,12 +137,24 @@ export async function mountCar(holder, view = {}) {
     controls.autoRotate = false;
   });
 
+  const bounds = new THREE.Box3().setFromObject(car).getBoundingSphere(new THREE.Sphere());
+  const look = camera.position.clone().sub(controls.target).normalize();
+
   const resize = () => {
     const width = holder.clientWidth;
     const height = holder.clientHeight;
+    if (!width || !height) {
+      return;
+    }
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    if (view.fit) {
+      const tall = THREE.MathUtils.degToRad(camera.fov);
+      const wide = 2 * Math.atan(Math.tan(tall / 2) * camera.aspect);
+      const distance = (bounds.radius * view.fit) / Math.sin(Math.min(tall, wide) / 2);
+      camera.position.copy(controls.target).addScaledVector(look, distance);
+    }
   };
   new ResizeObserver(resize).observe(holder);
   resize();
