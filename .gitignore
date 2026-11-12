@@ -12,3 +12,7 @@ linesight/tensorboard/*
 !linesight/tensorboard/.gitkeep
 linesight/config_files/config_copy.py
 linesight/*.egg-info/
+site/node_modules/
+site/dist/
+site/package-lock.json
+site/.wrangler/

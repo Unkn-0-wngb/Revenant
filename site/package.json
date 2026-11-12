@@ -1,0 +1,13 @@
+{
+  "name": "revenant-site",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "deploy": "node build.js && wrangler pages deploy dist --project-name revenant --branch main"
+  },
+  "devDependencies": {
+    "clean-css": "^5.3.3",
+    "html-minifier-terser": "^7.2.0",
+    "terser": "^5.31.0"
+  }
+}

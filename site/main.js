@@ -59,7 +59,8 @@ function tile(level) {
 
 async function fillBoard() {
   const board = document.getElementById("board");
-  const levels = await fetch("assets/levels.json").then((r) => r.json());
+  const data = await fetch("assets/levels.json").then((r) => r.json());
+  const levels = data.levels || data;
   for (const series of ["A", "B", "C", "D", "E"]) {
     const column = document.createElement("div");
     column.className = "series";
@@ -69,7 +70,90 @@ async function fillBoard() {
   }
   document.getElementById("count-finished").textContent = levels.filter((l) => l.best !== null).length;
   document.getElementById("count-author").textContent = levels.filter((l) => l.status === "author").length;
+  if (data.updated) {
+    const when = new Date(`${data.updated}T12:00:00`);
+    document.getElementById("updated").textContent = `Times last updated ${when.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.`;
+  }
 }
 
+function filterBoard() {
+  const buttons = document.querySelectorAll(".filter button");
+  const board = document.getElementById("board");
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      buttons.forEach((other) => other.setAttribute("aria-pressed", String(other === button)));
+      const show = button.dataset.show;
+      board.dataset.show = show;
+      board.querySelectorAll(".lap").forEach((lap) => {
+        lap.hidden = show !== "all" && !lap.classList.contains(show);
+      });
+    });
+  });
+}
+
+function trackSections() {
+  const links = new Map([...document.querySelectorAll(".bar nav a[href^='#']")].map((a) => [a.getAttribute("href").slice(1), a]));
+  const watcher = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const link = links.get(entry.target.id);
+      if (link && entry.isIntersecting) {
+        links.forEach((other) => other.removeAttribute("aria-current"));
+        link.setAttribute("aria-current", "true");
+      }
+    });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  links.forEach((_, id) => {
+    const section = document.getElementById(id);
+    if (section) {
+      watcher.observe(section);
+    }
+  });
+}
+
+function showLive(holder, view, wait) {
+  let started = false;
+  const start = () => {
+    if (started) {
+      return;
+    }
+    started = true;
+    import("./car.js?v=15").then((module) => module.mountCar(holder, view)).catch(() => holder.classList.add("failed"));
+  };
+  if (wait) {
+    new IntersectionObserver((entries, watcher) => {
+      if (entries[0].isIntersecting) {
+        watcher.disconnect();
+        start();
+      }
+    }, { rootMargin: "400px" }).observe(holder);
+    addEventListener("load", () => setTimeout(start, 2500));
+  } else {
+    start();
+  }
+}
+
+function loadCars() {
+  showLive(document.getElementById("hero-car"), { position: [1.95, 1.0, 3.9], height: 0.5, fov: 28, interactive: false, spin: 0 }, false);
+  showLive(document.getElementById("stage"), {}, true);
+  showLive(document.getElementById("rear-car"), { position: [-4.8, 1.6, 4.2], height: 0.55, interactive: false, spin: 0 }, true);
+}
+
+function guard() {
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("dragstart", (e) => {
+    if (e.target.tagName === "IMG") e.preventDefault();
+  });
+  document.addEventListener("keydown", (e) => {
+    const k = e.key.toLowerCase();
+    if (e.key === "F12") { e.preventDefault(); return; }
+    if (e.ctrlKey && ["u", "s", "c", "a"].includes(k)) { e.preventDefault(); return; }
+    if (e.ctrlKey && e.shiftKey && ["i", "j", "c", "k"].includes(k)) { e.preventDefault(); }
+  });
+}
+
+guard();
 typeIn();
 fillBoard();
+filterBoard();
+trackSections();
+loadCars();
