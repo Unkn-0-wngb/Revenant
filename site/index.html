@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revenant, a self-taught Trackmania AI</title>
+<meta name="description" content="Revenant teaches itself TrackMania Nations Forever. 40 of the 65 official levels finished and three author times beaten, from nothing but practice.">
+<meta property="og:title" content="Revenant, a self-taught Trackmania AI">
+<meta property="og:description" content="It learns every official level by crashing a lot, then a bit less, then not at all.">
+<meta property="og:image" content="https://revenant.laveryjonez.uk/assets/social.png">
+<meta property="og:url" content="https://revenant.laveryjonez.uk/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0c0d0e">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;1,600;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+<header class="bar">
+  <a class="bar-mark" href="#top" aria-label="Revenant, back to top"><img src="assets/wordmark.png" alt="Revenant" width="972" height="192"></a>
+  <nav aria-label="Sections">
+    <a href="#results">Results</a>
+    <a href="#how">How it learns</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#start">Get it</a>
+    <a class="bar-git" href="https://github.com/Unkn-0-wngb/Revenant">GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="stripes" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="hero-text">
+      <h1 class="reveal" aria-label="Revenant">
+        <img src="assets/wordmark.png" alt="" width="972" height="192">
+        <span class="caret" aria-hidden="true"></span>
+      </h1>
+      <p class="lede">An AI that teaches itself TrackMania Nations Forever. No recorded runs, no rules about corners. It drives every official level thousands of times and keeps whatever made it faster.</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/Unkn-0-wngb/Revenant/releases/latest">Download Revenant</a>
+        <a class="button" href="https://github.com/Unkn-0-wngb/Revenant">Read the code</a>
+      </div>
+      <p class="fine">Free and open source. Windows with an NVIDIA graphics card.</p>
+    </div>
+    <figure class="hero-car">
+      <img src="assets/car_front.jpg" alt="The Revenant car in the TrackMania garage: matte black with twin teal stripes over the nose" width="1385" height="461">
+    </figure>
+  </section>
+
+  <section class="results" id="results">
+    <div class="section-head">
+      <h2>Where it's got to</h2>
+      <p>After 93 hours of training on one ordinary gaming PC, Revenant has finished <strong id="count-finished">40</strong> of the 65 official levels and beaten the author time on <strong id="count-author">3</strong>. Every time below is its own lap.</p>
+    </div>
+    <div class="key" aria-hidden="true">
+      <span class="k author">Beat the author time</span>
+      <span class="k finished">Finished</span>
+      <span class="k tried">Still learning</span>
+      <span class="k waiting">Not reached yet</span>
+    </div>
+    <div class="board" id="board" role="list"></div>
+    <p class="note">Trained offline only. Revenant never plays online, so none of this touches the real leaderboards.</p>
+  </section>
+
+  <section class="story" id="how">
+    <div class="section-head">
+      <h2>How it learns</h2>
+    </div>
+    <div class="split">
+      <div class="prose">
+        <p>Twenty times a second Revenant gets a small grey picture of the screen, its speed, which wheels are touching the ground, and where the racing line goes next. It picks one of twelve key combinations. That's all it ever sees or does.</p>
+        <p>It's rewarded for getting further along the line in less time, and nudged away from walls. At first it drives into the first barrier over and over. A few hours later it's finishing the easy levels, and then it starts shaving off tenths.</p>
+        <p>Under the hood it's an IQN reinforcement learning agent, built on <a href="https://github.com/Linesight-RL/linesight">Linesight</a>, talking to the game through TMInterface. Two copies of the game play at once while the learner trains on what they bring back.</p>
+      </div>
+      <figure class="shot">
+        <img src="assets/car_side.jpg" alt="The Revenant car side on, matte black with REVENANT on a teal side panel" width="1385" height="461" loading="lazy">
+      </figure>
+    </div>
+
+    <div class="split flip">
+      <div class="prose">
+        <h3>When it gets stuck</h3>
+        <p>D02 has a hairpin that Revenant hit the wall on for five hours straight. Practising from the start every time meant it barely got any tries at the corner itself.</p>
+        <p>So a spare copy of the game builds a lap out of Revenant's own controls, following the record line one 50&nbsp;ms step at a time and checking every step replays exactly. Then Revenant starts runs from random points along that lap and takes over the wheel. It finished D02 minutes after the first one.</p>
+      </div>
+      <figure class="shot">
+        <img src="assets/controls_run.png" alt="The Run tab in Revenant's controls, with demo starts, the lap follower and bruteforce" width="680" height="740" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <section class="dash" id="dashboard">
+    <div class="section-head">
+      <h2>One window runs all of it</h2>
+      <p>Revenant comes with a dashboard that sets up everything on your PC, benchmarks your graphics card and picks settings to suit it. Then it starts and stops training, shows every lap as it happens, and draws the fastest one on the map, coloured by speed.</p>
+    </div>
+    <figure class="frame">
+      <img src="assets/dashboard.png" alt="The Revenant dashboard showing lap times, finish rate, wall touches and the fastest lap on the D02 map" width="1400" height="820" loading="lazy">
+    </figure>
+  </section>
+
+  <section class="start" id="start">
+    <div class="section-head">
+      <h2>Run it yourself</h2>
+      <p>You need Windows 10 or 11, an NVIDIA card with 4&nbsp;GB or more, and TrackMania Nations Forever, which is free on Steam.</p>
+    </div>
+    <ol class="steps">
+      <li>
+        <h3>Download</h3>
+        <p>Grab the code from GitHub. It starts learning from nothing. For the trained Revenant, also download the zips from the latest release.</p>
+      </li>
+      <li>
+        <h3>Open Revenant.bat</h3>
+        <p>The first time, it installs Python and the AI's libraries, about 3&nbsp;GB. After that it opens straight to the dashboard.</p>
+      </li>
+      <li>
+        <h3>Follow the Setup tab</h3>
+        <p>It checks the game, the mod loader, the maps and your PC, with a button next to anything missing. Then press Start.</p>
+      </li>
+    </ol>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/Unkn-0-wngb/Revenant/releases/latest">Download Revenant</a>
+      <a class="button" href="https://github.com/Unkn-0-wngb/Revenant/blob/main/docs/TROUBLESHOOTING.md">Troubleshooting</a>
+    </div>
+  </section>
+
+  <section class="credits">
+    <div class="made">
+      <h2>Why it exists</h2>
+      <p>Me and a friend wanted to see if it was possible to build a Trackmania AI that teaches itself to beat author times, with Claude Opus 5.5 doing the coding, debugging and testing while I steered it. It turns out it is.</p>
+    </div>
+    <div class="thanks">
+      <h2>Thanks to</h2>
+      <ul>
+        <li><strong>Unnamed477</strong>, for his own runs of the levels, which Revenant learned its best lines from.</li>
+        <li><strong>The Linesight team</strong>, whose AI Revenant is built on.</li>
+        <li><strong>donadigo</strong> for TMInterface and <strong>Tomashu</strong> for TMLoader.</li>
+        <li><strong>TMX</strong> for the record replays.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <img src="assets/badge.png" alt="" width="40" height="40">
+  <p>Revenant by Joshua Lavery-Jones. MIT licence. Not affiliated with Nadeo or Ubisoft.</p>
+  <a href="https://github.com/Unkn-0-wngb/Revenant">GitHub</a>
+</footer>
+
+<script src="main.js?v=2" defer></script>
+</body>
+</html>

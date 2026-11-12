@@ -4,7 +4,8 @@
 
 <p align="center">
   A self-taught AI for TrackMania Nations Forever.<br>
-  It learns every official level by crashing a lot, then a bit less, then not at all.
+  It learns every official level by crashing a lot, then a bit less, then not at all.<br>
+  <a href="https://revenant.laveryjonez.uk"><strong>revenant.laveryjonez.uk</strong></a>
 </p>
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0d0d0d?style=flat-square&logo=windows">
@@ -156,6 +157,7 @@ checks.py, machine.py, paths.py                setup checks, benchmark, finding 
 follow_line.py, refeed.py                      lap follower and demo starts
 bruteforce.py, render_lap.py                   lap improver, video and inputs export
 make_art.py, art/                              logo, banner, car livery, profile template
+site/                                          the website at revenant.laveryjonez.uk
 linesight/                                     the AI itself (Linesight with my changes)
 linesight/config_files/config.py               every training setting
 linesight/maps/                                the racing line for each level
