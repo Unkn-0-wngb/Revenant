@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;1,600;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -82,9 +82,7 @@
       </div>
       <p class="fine">Free and open source. Windows with an NVIDIA graphics card.</p>
     </div>
-    <figure class="hero-car live" id="hero-car">
-      <img src="assets/car_front.jpg" alt="The Revenant car in the TrackMania garage: matte black with twin teal stripes over the nose" width="1385" height="461">
-    </figure>
+    <figure class="hero-car live" id="hero-car" role="img" aria-label="The Revenant car, matte black with twin teal stripes over the nose"></figure>
   </section>
 
   <section class="results" id="results">
@@ -92,14 +90,22 @@
       <h2>Where it's got to</h2>
       <p>After 93 hours of training on one ordinary gaming PC, Revenant has finished <strong id="count-finished">40</strong> of the 65 official levels and beaten the author time on <strong id="count-author">3</strong>. Every time below is its own lap.</p>
     </div>
-    <div class="filter" role="group" aria-label="Show levels">
-      <button type="button" data-show="all" aria-pressed="true">All</button>
-      <button type="button" class="k author" data-show="author" aria-pressed="false">Beat the author time</button>
-      <button type="button" class="k finished" data-show="finished" aria-pressed="false">Finished</button>
-      <button type="button" class="k tried" data-show="tried" aria-pressed="false">Still learning</button>
-      <button type="button" class="k waiting" data-show="waiting" aria-pressed="false">Not reached yet</button>
+    <div class="tally">
+      <p><b id="big-finished">40</b><span>of 65 levels finished</span></p>
+      <p class="author"><b id="big-author">3</b><span>author times beaten</span></p>
+      <p><b>93</b><span>hours of practice</span></p>
     </div>
-    <div class="board" id="board" role="list"></div>
+    <div class="track" id="track" aria-hidden="true"></div>
+    <div class="filter" role="group" aria-label="Show levels">
+      <button type="button" data-show="all" aria-pressed="true">All <span class="n" data-count="all"></span></button>
+      <button type="button" class="k author" data-show="author" aria-pressed="false">Beat the author time <span class="n" data-count="author"></span></button>
+      <button type="button" class="k finished" data-show="finished" aria-pressed="false">Finished <span class="n" data-count="finished"></span></button>
+      <button type="button" class="k tried" data-show="tried" aria-pressed="false">Still learning <span class="n" data-count="tried"></span></button>
+      <button type="button" class="k waiting" data-show="waiting" aria-pressed="false">Not reached yet <span class="n" data-count="waiting"></span></button>
+    </div>
+    <div class="board" id="board">
+      <noscript><p class="note">The results board needs JavaScript. The same times are in <a href="assets/levels.json">levels.json</a>.</p></noscript>
+    </div>
     <p class="note"><span id="updated"></span> Trained offline only. Revenant never plays online, so none of this touches the real leaderboards.</p>
   </section>
 
@@ -108,9 +114,7 @@
       <h2>The car</h2>
       <p>This is the Stadium car from the game, wearing Revenant's own skin, drawn live in your browser. Drag to turn it, scroll or pinch to zoom.</p>
     </div>
-    <div class="stage" id="stage">
-      <img class="stage-still" src="assets/car_side.jpg" alt="The Revenant car, matte black with twin teal stripes and REVENANT on the side" width="1385" height="461">
-    </div>
+    <div class="stage" id="stage" role="img" aria-label="A 3D model of the Revenant car you can turn and zoom, matte black with twin teal stripes and REVENANT on the side"></div>
   </section>
 
   <section class="story" id="how">
@@ -123,9 +127,7 @@
         <p>It's rewarded for getting further along the line in less time, and nudged away from walls. At first it drives into the first barrier over and over. A few hours later it's finishing the easy levels, and then it starts shaving off tenths.</p>
         <p>Under the hood it's an IQN reinforcement learning agent, built on <a href="https://github.com/Linesight-RL/linesight">Linesight</a>, talking to the game through TMInterface. Two copies of the game play at once while the learner trains on what they bring back.</p>
       </div>
-      <figure class="shot live" id="rear-car">
-        <img src="assets/car_side.jpg" alt="The Revenant car side on, matte black with REVENANT on a teal side panel" width="1385" height="461" loading="lazy">
-      </figure>
+      <figure class="shot live" id="rear-car" role="img" aria-label="The Revenant car side on, matte black with REVENANT on a teal side panel"></figure>
     </div>
 
     <div class="split flip">
@@ -210,6 +212,6 @@
   }
 }
 </script>
-<script src="main.js?v=7" defer></script>
+<script src="main.js?v=8" defer></script>
 </body>
 </html>

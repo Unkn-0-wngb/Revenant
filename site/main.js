@@ -54,6 +54,7 @@ function tile(level) {
   }
   item.innerHTML = `<b>${level.id}</b><span>${time}</span><small>${detail}</small>`;
   item.title = `${level.id} ${level.name}`;
+  item.setAttribute("aria-label", `${level.id} ${level.name}, ${time}, ${detail}`);
   return item;
 }
 
@@ -64,12 +65,32 @@ async function fillBoard() {
   for (const series of ["A", "B", "C", "D", "E"]) {
     const column = document.createElement("div");
     column.className = "series";
-    column.innerHTML = `<h3>${series}</h3>`;
-    levels.filter((l) => l.id[0] === series).forEach((l) => column.appendChild(tile(l)));
+    column.innerHTML = `<h3 id="series-${series}">${series}</h3>`;
+    const list = document.createElement("div");
+    list.className = "laps";
+    list.setAttribute("role", "list");
+    list.setAttribute("aria-labelledby", `series-${series}`);
+    levels.filter((l) => l.id[0] === series).forEach((l) => list.appendChild(tile(l)));
+    column.appendChild(list);
     board.appendChild(column);
   }
-  document.getElementById("count-finished").textContent = levels.filter((l) => l.best !== null).length;
-  document.getElementById("count-author").textContent = levels.filter((l) => l.status === "author").length;
+  const counts = { all: levels.length, author: 0, finished: 0, tried: 0, waiting: 0 };
+  levels.forEach((l) => { counts[l.status] += 1; });
+  const finished = counts.author + counts.finished;
+  for (const id of ["count-finished", "big-finished"]) {
+    document.getElementById(id).textContent = finished;
+  }
+  for (const id of ["count-author", "big-author"]) {
+    document.getElementById(id).textContent = counts.author;
+  }
+  document.querySelectorAll("[data-count]").forEach((n) => { n.textContent = counts[n.dataset.count]; });
+  const track = document.getElementById("track");
+  for (const status of ["author", "finished", "tried", "waiting"]) {
+    const part = document.createElement("i");
+    part.className = status;
+    part.style.flexGrow = counts[status];
+    track.appendChild(part);
+  }
   if (data.updated) {
     const when = new Date(`${data.updated}T12:00:00`);
     document.getElementById("updated").textContent = `Times last updated ${when.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.`;
@@ -108,6 +129,11 @@ function trackSections() {
       watcher.observe(section);
     }
   });
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      links.forEach((link) => link.removeAttribute("aria-current"));
+    }
+  }, { rootMargin: "-45% 0px -50% 0px" }).observe(document.querySelector(".hero"));
 }
 
 function showLive(holder, view, wait) {
