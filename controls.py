@@ -149,8 +149,8 @@ def stop_helper(name):
     kill(found)
     if name in ("lap follower", "bruteforce") and found:
         games = sorted((p for p in psutil.process_iter(["name", "create_time"]) if (p.info["name"] or "").lower() == "tmforever.exe"), key=lambda p: p.info["create_time"])
-        if len(games) > 2:
-            kill(games[2:])
+        keep = current("gpu_collectors_count") or 2 if training_running() else 0
+        kill(games[keep:])
     return f"Stopped the {name}." if found else f"The {name} {'were' if name.endswith('s') else 'was'} not running."
 
 
@@ -253,7 +253,8 @@ def profiles():
 
 
 def read_profile(path):
-    data = open(path, "rb").read()
+    with open(path, "rb") as f:
+        data = f.read()
     head = 3 + 2 + 4 + 4
     user_size = struct.unpack_from("<I", data, head)[0]
     sizes_at = head + 4 + user_size + 8

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Start with the dashboard's **Setup** tab. Most problems show up there as a red ✗ with a button next to it.
+Start with the dashboard's **Setup** tab. Most problems show up there as an amber ! with a button next to it.
 
 ## Starting up
 
@@ -10,6 +10,9 @@ Run `setup.ps1` from PowerShell so you can read the error:
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 The usual causes are no internet (it downloads about 3 GB) or winget missing on old Windows 10 installs. If winget is missing, install Python 3.11 from python.org yourself and run it again.
+
+**The dashboard shows "hit an error and closed".**
+The full error is in `logs/dashboard_error.log`. If it mentions a missing module, run `setup.ps1` again (Revenant.bat also does this by itself when a library is missing).
 
 **"Python packages: missing ..." on the Setup tab.**
 Press *Run setup*. If it keeps failing on `python-lzo`, make sure you're on 64-bit Python 3.11.
@@ -54,7 +57,7 @@ Run the benchmark on the Machine tab and press *Use these settings*. Fewer games
 **It's stuck at the same point on a level for hours.**
 That's what the lap follower and demo starts are for (Run tab):
 1. Start the lap follower on that level and let it build a lap. Watch `logs/follow_<level>.log`.
-2. When it has a lap, start demo starts on that level, with a step range that begins a bit before the hard part.
+2. When it has a lap (or runs out of time, it keeps the part it managed in `bruteforce/<level>_follow_partial.npy`), start demo starts on that level, with a step range that begins a bit before the hard part.
 3. Set focus to that level so the loop stays there.
 
 **I changed the memory size and the learner crashed.**

@@ -69,7 +69,7 @@ def tmloader_game_setting():
         return None
     with open(paths.TMLOADER_GAME, encoding="utf-8") as f:
         found = re.search(r"install:\s*'(.*)'", f.read())
-    return found.group(1) if found else None
+    return found.group(1).replace("''", "'") if found else None
 
 
 def check_tmloader_game():
@@ -84,7 +84,7 @@ def fix_tmloader_game():
         return "Install the game first."
     os.makedirs(os.path.dirname(paths.TMLOADER_GAME), exist_ok=True)
     with open(paths.TMLOADER_GAME, "w", encoding="utf-8") as f:
-        f.write(f"install: '{folder}'\n")
+        f.write("install: '" + folder.replace("'", "''") + "'\n")
     return f"Pointed TMLoader at {folder}."
 
 
@@ -98,9 +98,19 @@ def check_tmloader_profile():
 
 def fix_tmloader_profile():
     os.makedirs(os.path.dirname(paths.TMLOADER_PROFILE), exist_ok=True)
+    text = ""
+    if os.path.exists(paths.TMLOADER_PROFILE):
+        with open(paths.TMLOADER_PROFILE, encoding="utf-8") as f:
+            text = f.read()
+    if re.search(r"^mods:\s*$", text, re.M):
+        text = re.sub(r"^mods:\s*$", "mods:\n  - id: TMInterface", text, count=1, flags=re.M)
+        said = "Added TMInterface to your default TMLoader profile."
+    else:
+        text = "program:\n  id: TmForever\nmods:\n  - id: TMInterface\n"
+        said = "Made a TMLoader profile called default that loads TMInterface."
     with open(paths.TMLOADER_PROFILE, "w", encoding="utf-8") as f:
-        f.write("program:\n  id: TmForever\nmods:\n  - id: TMInterface\n")
-    return "Made a TMLoader profile called default that loads TMInterface. TMLoader downloads it the first time the game starts."
+        f.write(text)
+    return said + " TMLoader downloads it the first time the game starts."
 
 
 def check_plugin():
@@ -118,9 +128,11 @@ def fix_plugin():
 
 
 def check_maps():
-    needed = len(controls.levels())
-    found = len(glob.glob(os.path.join(paths.OFFICIAL_MAPS, "*.Challenge.Gbx")))
-    return found >= needed, f"{found} of {needed} map files"
+    needed = [short for short, _ in controls.levels()]
+    missing = [short for short in needed if not glob.glob(os.path.join(paths.OFFICIAL_MAPS, f"{short}-*.Challenge.Gbx"))]
+    if missing:
+        return False, f"{len(needed) - len(missing)} of {len(needed)}, missing {', '.join(missing[:4])}{'...' if len(missing) > 4 else ''}"
+    return True, f"all {len(needed)} levels"
 
 
 def fix_maps():

@@ -32,6 +32,7 @@ inputs = config_copy.inputs
 out_dir = os.path.join(ROOT, "bruteforce")
 os.makedirs(out_dir, exist_ok=True)
 log_path = os.path.join(ROOT, "logs", f"bruteforce_{level}.log")
+os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
 
 def log(message):

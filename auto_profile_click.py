@@ -45,6 +45,7 @@ window_callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPAR
 
 
 def write_log(message):
+    os.makedirs(os.path.dirname(LOG), exist_ok=True)
     with open(LOG, "a", encoding="utf-8") as f:
         f.write(f"{time.strftime('%d/%m %H:%M:%S')} {message}\n")
 

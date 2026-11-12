@@ -1,4 +1,4 @@
-# Starts Linesight training on every level in config_files\all_maps.py, from the saved weights.
+﻿# Starts Linesight training on every level in config_files\all_maps.py, from the saved weights.
 # Output goes to logs\train_run1.log. The previous log is kept with a timestamp.
 # Training force-closes every running game, so this refuses to start while one is open.
 $root = $PSScriptRoot
@@ -22,4 +22,5 @@ New-Item -ItemType Directory -Force "$root\logs" | Out-Null
 $log = "$root\logs\train_run1.log"
 if (Test-Path $log) { Copy-Item $log "$root\logs\train_before_$(Get-Date -Format yyyyMMdd_HHmmss).log" }
 $env:PYTHONUNBUFFERED = '1'
+$env:PYTHONPATH = "$root\linesight"
 & "$root\venv\Scripts\python.exe" scripts\train.py *>&1 | Out-File -FilePath $log -Encoding utf8

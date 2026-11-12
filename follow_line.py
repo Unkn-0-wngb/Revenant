@@ -66,6 +66,8 @@ throttle = [i for i, a in enumerate(inputs) if a["accelerate"] and not a["brake"
 out_dir = os.path.join(ROOT, "bruteforce")
 os.makedirs(os.path.join(out_dir, "feed"), exist_ok=True)
 log_path = os.path.join(ROOT, "logs", f"follow_{level}.log")
+os.makedirs(os.path.dirname(log_path), exist_ok=True)
+partial_path = os.path.join(out_dir, f"{level}_follow_partial.npy")
 save_path = os.path.join(out_dir, f"follow_{level}_progress.joblib")
 
 
@@ -173,7 +175,6 @@ def main():
     candidates = []
     ci = 0
     results = []
-    chosen = forward
     second = SECOND
     noise = 0.0
     best_progress = 0
@@ -373,10 +374,16 @@ def main():
                 log(f"at step {k}, line point {progress.get(k)} of {len(line)}, backups {sum(fails.values())}")
 
         if replayed is None:
-            log("no lap saved")
+            done = actions[:checked]
+            if len(done) > start_steps + 100 and (not os.path.exists(partial_path) or len(np.load(partial_path)) < len(done)):
+                np.save(partial_path, np.array(done))
+                log(f"no full lap, kept the first {len(done)} checked steps for demo starts")
+            else:
+                log("no lap saved")
             return
         log(f"replay finished in {replayed} ms (search said {lap_time})")
         np.save(os.path.join(out_dir, f"{level}_follow_{replayed}.npy"), np.array(lap))
+        np.save(partial_path, np.array(lap))
         np.save(os.path.join(out_dir, "feed", f"{level}_new.npy"), np.array(lap))
         os.replace(os.path.join(out_dir, "feed", f"{level}_new.npy"), os.path.join(out_dir, "feed", f"{level}.npy"))
         os.remove(save_path)

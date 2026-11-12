@@ -3,14 +3,12 @@ __pycache__/
 *.pyc
 models/
 logs/
+bruteforce/
 official_maps/
-bruteforce/feed/
-bruteforce/*_progress.joblib
+machine.json
 linesight/save/*
 !linesight/save/.gitkeep
 linesight/tensorboard/*
 !linesight/tensorboard/.gitkeep
 linesight/config_files/config_copy.py
 linesight/*.egg-info/
-machine.json
-bruteforce/

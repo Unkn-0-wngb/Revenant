@@ -24,7 +24,7 @@ flowchart LR
 - **Games.** Each copy of the game runs through TMLoader with TMInterface, which lets Python pause the game, read the car's state, grab a frame and press keys.
 - **Collectors.** One per game (`gpu_collectors_count`). They drive using the newest copy of the network and send each finished run to the learner.
 - **Learner.** Keeps the recent runs in a replay memory (`memory_size_schedule`) and trains on random batches of them (`batch_size`) on the GPU.
-- **Dashboard.** Reads the training log and TensorBoard files for the graphs, and starts, stops and configures everything else.
+- **Dashboard.** Reads the training log and TensorBoard files for the graphs (in a background process, so the window never freezes), and starts, stops and configures everything else.
 
 ## What the AI sees and does
 
@@ -96,6 +96,8 @@ Some levels have a part the AI just can't get through by trying random things. D
 3. If the car goes off or stalls, it backs up and tries again with some randomness, backing up further each time it fails in the same place.
 
 The important bit is that **every step is committed by replaying the lap from the start**. Rewinding the game is exact once, but chains of rewinds drift by a centimetre or two, and on a jump that's the difference between landing and falling off. Training always plays laps from the start, so the follower does too, and the lap it saves plays back identically.
+
+If it finishes, the whole lap goes to `bruteforce/<level>_follow_<ms>.npy` and is fed to training once. If it runs out of time first, it still keeps every checked step it has so far in `bruteforce/<level>_follow_partial.npy`, which is all demo starts need.
 
 **Demo starts** (`refeed.py`, Run tab) take the follower's lap, play it up to a random step, then hand the car to the AI. The AI gets to practise the hard part from a good approach instead of failing before it. This is the "start from a demonstration" idea that was used to beat Montezuma's Revenge. On D02 it finished the level by itself within minutes of turning them on.
 

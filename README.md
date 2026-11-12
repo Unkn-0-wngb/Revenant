@@ -1,19 +1,16 @@
 <p align="center">
-  <img src="art/revenant_logo_256.png" width="150" alt="Revenant logo">
+  <img src="art/revenant_banner.png" alt="Revenant: self-taught TrackMania AI">
 </p>
-
-<h1 align="center">Revenant</h1>
 
 <p align="center">
   A self-taught AI for TrackMania Nations Forever.<br>
   It learns every official level by crashing a lot, then a bit less, then not at all.
 </p>
-
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0d0d0d?style=flat-square&logo=windows">
   <img src="https://img.shields.io/badge/NVIDIA-CUDA-0d0d0d?style=flat-square&logo=nvidia">
   <img src="https://img.shields.io/badge/Python-3.11-0d0d0d?style=flat-square&logo=python">
-  <img src="https://img.shields.io/badge/licence-MIT-19e3c8?style=flat-square">
+  <img src="https://img.shields.io/badge/licence-MIT-00c4ac?style=flat-square">
 </p>
 
 <p align="center">
@@ -109,7 +106,15 @@ Put them in a `models` folder next to `Revenant.bat` and press **Install** next 
 
 ## The dashboard
 
-Open it with `Revenant.bat`. The main window follows whatever level is training, or pick one from the list. **Controls** opens everything else:
+Open it with `Revenant.bat`. It types out the Revenant logo while it reads the training data (a few seconds), then slides it into place. The main window follows whatever level is training, or pick one from the list.
+
+<p align="center"><img src="docs/images/intro.gif" width="560" alt="The dashboard opening"></p>
+
+**Levels** shows every official level at a glance: author medals in teal, finished levels with their gap to author, levels it's tried but not finished yet, and ones it hasn't reached. Click one to see its graphs.
+
+<p align="center"><img src="docs/images/levels.png" width="620" alt="Levels overview"></p>
+
+**Controls** opens everything else:
 
 | | |
 |---|---|
@@ -145,12 +150,12 @@ Revenant is built on [Linesight](https://github.com/Linesight-RL/linesight), an 
 
 ```
 Revenant.bat                                   start here
-dashboard.py                                   the main window
+dashboard.py, levels_window.py, theme.py       the main window, the Levels overview, shared colours and fonts
 control_window.py, controls.py                 the Controls window and what it does
 checks.py, machine.py, paths.py                setup checks, benchmark, finding folders on any PC
 follow_line.py, refeed.py                      lap follower and demo starts
 bruteforce.py, render_lap.py                   lap improver, video and inputs export
-make_art.py, art/                              logo, car skin, profile template
+make_art.py, art/                              logo, banner, car livery, profile template
 linesight/                                     the AI itself (Linesight with my changes)
 linesight/config_files/config.py               every training setting
 linesight/maps/                                the racing line for each level

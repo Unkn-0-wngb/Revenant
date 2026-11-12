@@ -13,7 +13,6 @@ LOG = os.path.join(ROOT, "logs", "train_run1.log")
 STATE = os.path.join(ROOT, "logs", "levels_watch_state.json")
 POLL_S = 120
 STALL_S = 600
-A07_BEST = 27.11
 
 
 def load_state():
@@ -58,8 +57,9 @@ def main():
     stats = Stats("all_levels_run1")
     if state.get("best") is None:
         state = {"best": stats.read()[0], "errors": 0}
-    state["best"]["A07"] = min(state["best"].get("A07", A07_BEST), A07_BEST)
     while True:
+        if not os.path.exists(LOG):
+            report(state, "STOPPED: there is no training log yet")
         with open(LOG, encoding="utf-8", errors="replace") as f:
             text = f.read()
         found = re.findall(r"NMG=(\d+)", text)

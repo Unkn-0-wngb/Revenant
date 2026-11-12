@@ -12,7 +12,6 @@ import urllib.request
 from pathlib import Path
 
 import numpy as np
-from pygbx import Gbx, GbxType
 
 base_dir = Path(__file__).resolve().parents[2]
 root = base_dir.parent

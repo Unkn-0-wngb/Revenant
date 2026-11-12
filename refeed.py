@@ -16,6 +16,9 @@ wait = float(sys.argv[4]) if len(sys.argv) > 4 else 60
 feed = os.path.join(ROOT, "bruteforce", "feed")
 target = os.path.join(feed, f"{level}_prefix.npy")
 log_path = os.path.join(ROOT, "logs", f"refeed_{level}.log")
+last = max(first, min(last, len(lap) - 1))
+os.makedirs(feed, exist_ok=True)
+os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
 while True:
     if not os.path.exists(target) and not os.path.exists(os.path.join(feed, f"{level}.npy")):

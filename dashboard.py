@@ -1,13 +1,12 @@
 import collections
 import ctypes
-import glob
 import io
 import msvcrt
+import multiprocessing
 import os
 import queue
 import re
 import sys
-import threading
 import time
 import tkinter as tk
 from ctypes import wintypes
@@ -25,13 +24,15 @@ from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
 from PIL import Image, ImageTk
-from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
 import checks
 import controls
 import machine
+import theme
 from control_window import ControlWindow
-from level_stats import load_levels
+from intro import Intro
+from levels_window import LevelsWindow
+from level_stats import Events, load_levels
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "linesight"))
@@ -54,22 +55,10 @@ MIN_COMMIT_FOR_MAP_GB = 1.0
 STALL_S = 600
 AUTO = "Follow running level"
 GAP = "Gap to author / record"
+STEPS = "Training steps"
 
-PAGE = "#0d0d0d"
-SURFACE = "#1a1a19"
-INK = "#f0efec"
-INK_2 = "#c3c2b7"
-MUTED = "#898781"
-GRID = "#2c2c2a"
-AXIS = "#383835"
-TEAL = "#19e3c8"
-TEAL_DIM = "#0f7d70"
-ORANGE = "#d95926"
-GOOD = "#0ca30c"
-WARNING = "#fab219"
-CRITICAL = "#d03b3b"
-FONT = "Segoe UI"
-SPEED_MAP = LinearSegmentedColormap.from_list("speed", ["#0c3d39", "#0f7d70", "#19e3c8", "#d4fff8"])
+from theme import AXIS, CONDENSED, CRITICAL, FONT, NUMBERS, GOOD, GRID, INK, INK_2, MUTED, ORANGE, PAGE, SURFACE, TEAL, WARNING
+SPEED_MAP = LinearSegmentedColormap.from_list("speed", ["#06302c", "#00796b", "#00c4ac", "#d6f7f2"])
 TAG_PREFIXES = ("eval_race_time_finished_", "explo_race_time_finished_", "eval_race_finished_", "explo_race_finished_")
 
 
@@ -179,8 +168,7 @@ def show_time(value):
 class Reader:
     def __init__(self, levels):
         self.levels = {level["short"]: level for level in levels}
-        self.accumulators = {}
-        self.sizes = {}
+        self.events = Events(*TB_DIRS)
         self.choice = None
         self.path_key = None
         self.path_time = 0
@@ -188,21 +176,8 @@ class Reader:
         self.step_samples = collections.deque(maxlen=12)
 
     def series(self):
-        for folder in TB_DIRS:
-            for path in glob.glob(os.path.join(ROOT, "linesight", "tensorboard", folder + "*", "events*")):
-                size = os.path.getsize(path)
-                if size < 5000 or self.sizes.get(path) == size:
-                    continue
-                self.sizes[path] = size
-                if path not in self.accumulators:
-                    self.accumulators[path] = EventAccumulator(path, size_guidance={"scalars": 0})
-                self.accumulators[path].Reload()
-        rows = collections.defaultdict(list)
-        for acc in self.accumulators.values():
-            for tag in acc.Tags()["scalars"]:
-                if tag == "wall_contact_fraction" or tag.startswith(TAG_PREFIXES):
-                    rows[tag].extend((e.step, e.value) for e in acc.Scalars(tag))
-        return {tag: np.array(sorted(v), dtype=float).reshape(-1, 2) for tag, v in rows.items()}
+        rows = self.events.update()
+        return {tag: np.array(sorted(v), dtype=float).reshape(-1, 2) for tag, v in rows.items() if tag == "wall_contact_fraction" or tag.startswith(TAG_PREFIXES)}
 
     def log_state(self):
         if not os.path.exists(LOG):
@@ -250,10 +225,12 @@ class Reader:
 
         latest, running = -1, None
         best = {}
+        tried = set()
         for tag, rows in series.items():
             if tag == "wall_contact_fraction" or not len(rows):
                 continue
             short = tag.rsplit("_", 1)[1]
+            tried.add(short)
             if rows[-1, 0] > latest:
                 latest, running = rows[-1, 0], short
             if "_time_finished_" in tag:
@@ -276,6 +253,7 @@ class Reader:
             "finished": finished,
             "wall": wall,
             "best": best,
+            "tried": tried,
             "steps": steps,
             "level_steps": steps_by_level(series)[short],
             "rate": rate,
@@ -288,14 +266,30 @@ class Reader:
         }
 
 
+def read_forever(levels, choice, requests, results):
+    reader = Reader(levels)
+    reader.choice = choice
+    while True:
+        try:
+            results.put(reader.read())
+        except Exception as e:
+            results.put(e)
+        try:
+            reader.choice = requests.get(timeout=REFRESH_S)
+            while True:
+                reader.choice = requests.get_nowait()
+        except queue.Empty:
+            pass
+
+
 class Tile:
     def __init__(self, parent, title):
         self.frame = tk.Frame(parent, bg=SURFACE, padx=14, pady=10)
-        self.title = tk.Label(self.frame, text=title, bg=SURFACE, fg=MUTED, font=(FONT, 10), anchor="w", bd=0, pady=0)
+        self.title = tk.Label(self.frame, text=title.upper(), bg=SURFACE, fg=MUTED, font=(CONDENSED, 9), anchor="w", bd=0, pady=0)
         self.title.pack(fill="x")
-        self.value = tk.Label(self.frame, text="-", bg=SURFACE, fg=INK, font=(FONT, 17, "bold"), anchor="w", bd=0, pady=0)
+        self.value = tk.Label(self.frame, text="-", bg=SURFACE, fg=INK, font=(NUMBERS, 19), anchor="w", bd=0, pady=0)
         self.value.pack(fill="x")
-        self.note = tk.Label(self.frame, text=" ", bg=SURFACE, fg=INK_2, font=(FONT, 10), anchor="w", bd=0, pady=0)
+        self.note = tk.Label(self.frame, text=" ", bg=SURFACE, fg=INK_2, font=(FONT, 9), anchor="w", bd=0, pady=0)
         self.note.pack(fill="x")
 
     def set(self, value, note, color=INK):
@@ -304,9 +298,9 @@ class Tile:
 
     def resize(self, compact):
         self.frame.config(padx=8 if compact else 14, pady=2 if compact else 10)
-        self.title.config(font=(FONT, 7 if compact else 10))
-        self.value.config(font=(FONT, 11 if compact else 14, "bold"))
-        self.note.config(font=(FONT, 7 if compact else 10))
+        self.title.config(font=(CONDENSED, 7 if compact else 9))
+        self.value.config(font=(NUMBERS, 13 if compact else 19))
+        self.note.config(font=(FONT, 7 if compact else 9))
 
 
 class Dashboard:
@@ -320,45 +314,33 @@ class Dashboard:
         self.root.minsize(START_WIDTH, START_HEIGHT)
         self.root.configure(bg=PAGE)
 
-        style = ttk.Style(self.root)
-        style.theme_use("clam")
-        style.configure("TCombobox", fieldbackground=SURFACE, background=SURFACE, foreground=INK, arrowcolor=TEAL, bordercolor=AXIS, lightcolor=SURFACE, darkcolor=SURFACE, padding=(8, 4))
-        style.map(
-            "TCombobox",
-            fieldbackground=[("readonly", "focus", SURFACE), ("readonly", SURFACE)],
-            background=[("readonly", "active", GRID), ("readonly", SURFACE)],
-            foreground=[("readonly", INK)],
-            selectbackground=[("readonly", SURFACE)],
-            selectforeground=[("readonly", INK)],
-            bordercolor=[("focus", TEAL_DIM)],
-        )
-        self.root.option_add("*TCombobox*Listbox.background", SURFACE)
-        self.root.option_add("*TCombobox*Listbox.foreground", INK)
-        self.root.option_add("*TCombobox*Listbox.selectBackground", GRID)
+        theme.style(self.root)
+        theme.dark_title(self.root)
 
         logo = Image.open(os.path.join(ROOT, "art", "revenant_logo_256.png"))
         self.icon = ImageTk.PhotoImage(logo.resize((64, 64), Image.LANCZOS))
         self.root.iconphoto(True, self.icon)
-        self.small_logo = ImageTk.PhotoImage(logo.resize((34, 34), Image.LANCZOS))
+        header = Image.open(os.path.join(ROOT, "art", "revenant_header.png"))
+        self.header = ImageTk.PhotoImage(header.resize((round(header.width * 24 / header.height), 24), Image.LANCZOS))
 
         top = tk.Frame(self.root, bg=PAGE)
         top.pack(fill="x", padx=10, pady=(8, 2))
-        tk.Label(top, image=self.small_logo, bg=PAGE).pack(side="left")
-        tk.Label(top, text="REVENANT", bg=PAGE, fg=INK, font=(FONT, 15, "bold")).pack(side="left", padx=(6, 2))
-        tk.Label(top, text="Trackmania AI", bg=PAGE, fg=MUTED, font=(FONT, 10)).pack(side="left", padx=(0, 16), pady=(5, 0))
+        self.header_label = tk.Label(top, image=self.header, bg=PAGE, bd=0)
+        self.header_label.pack(side="left", padx=(0, 18))
         self.picker = ttk.Combobox(top, values=[AUTO] + [level_info["name"] for level_info in self.levels], state="readonly", width=24, font=(FONT, 10))
         self.picker.set(AUTO)
         self.picker.pack(side="left")
         self.picker.bind("<<ComboboxSelected>>", self.on_pick)
-        controls_button = tk.Button(top, text="Controls", command=self.open_controls, bg=TEAL, fg=PAGE, activebackground="#5ff0dc", activeforeground=PAGE, relief="flat", font=(FONT, 10, "bold"), padx=16, pady=3, cursor="hand2")
-        controls_button.pack(side="right")
+        theme.link_button(top, "Controls", self.open_controls, primary=True).pack(side="right")
+        theme.link_button(top, "Levels", self.open_levels).pack(side="right", padx=(0, 8))
         self.controls = None
+        self.levels_view = None
         self.heading = tk.Label(top, text="", bg=PAGE, fg=INK, font=(FONT, 11, "bold"), anchor="w")
         self.heading.pack(side="left", padx=14, fill="x", expand=True)
 
         self.tile_row = tk.Frame(self.root, bg=PAGE)
         self.tile_row.pack(fill="x", padx=6, pady=(3, 2))
-        names = ("Best lap", "Typical lap", "Finish rate", GAP, "Levels finished", "Steps, level / total", "Status", "Memory headroom")
+        names = ("Best lap", "Typical lap", "Finish rate", GAP, "Levels finished", STEPS, "Status", "Memory headroom")
         self.tiles = {name: Tile(self.tile_row, name) for name in names}
 
         self.footer = tk.Label(self.root, text="Reading training files...", bg=PAGE, fg=INK_2, font=(FONT, 10), anchor="w")
@@ -385,12 +367,21 @@ class Dashboard:
         self.line_cache = {}
         self.hover_data = {}
         self.tooltips = {}
-        self.results = queue.Queue()
-        self.wake = threading.Event()
-        self.reader = Reader(self.levels)
-        self.reader.choice = level
-        threading.Thread(target=self.read_loop, daemon=True).start()
+        self.results = multiprocessing.Queue()
+        self.requests = multiprocessing.Queue()
+        multiprocessing.Process(target=read_forever, args=(self.levels, level, self.requests, self.results), daemon=True).start()
         self.root.after(300, self.poll)
+        self.after_intro = []
+        if not snapshot:
+            self.play_intro()
+
+    def play_intro(self):
+        art = os.path.join(ROOT, "art", "revenant_header.png")
+        Intro(self.root, art, self.header_spot, lambda: self.latest is not None, lambda: [later() for later in self.after_intro])
+
+    def header_spot(self):
+        label = self.header_label
+        return label.winfo_rootx() - self.root.winfo_rootx(), label.winfo_rooty() - self.root.winfo_rooty(), self.header.height()
 
     def apply_layout(self, compact):
         self.compact = compact
@@ -436,27 +427,32 @@ class Dashboard:
         if self.controls and self.controls.window.winfo_exists():
             self.controls.window.lift()
             return
-        colors = {"page": PAGE, "surface": SURFACE, "ink": INK, "ink_2": INK_2, "muted": MUTED, "grid": GRID, "axis": AXIS, "warning": WARNING, "good": GOOD, "teal": TEAL}
-        self.controls = ControlWindow(self.root, colors, FONT)
+        self.controls = ControlWindow(self.root)
+
+    def open_levels(self):
+        if self.levels_view and self.levels_view.window.winfo_exists():
+            self.levels_view.window.lift()
+            return
+        self.levels_view = LevelsWindow(self.root, self.levels, self.pick_level)
+        if self.latest:
+            self.levels_view.update(self.latest["best"], self.latest.get("tried", set()))
+
+    def pick_level(self, short):
+        level = self.level_by_short.get(short)
+        if not level:
+            return
+        self.picker.set(level["name"])
+        self.requests.put(short)
+        self.heading.config(text="Loading...")
 
     def on_pick(self, _):
         name = self.picker.get()
-        self.reader.choice = None if name == AUTO else name[:3]
+        self.requests.put(None if name == AUTO else name[:3])
         self.picker.selection_clear()
         self.heading.config(text="Loading...")
-        self.wake.set()
 
     def pt(self, size):
         return size * self.scale
-
-    def read_loop(self):
-        while True:
-            try:
-                self.results.put(self.reader.read())
-            except Exception as e:
-                self.results.put(e)
-            self.wake.wait(REFRESH_S)
-            self.wake.clear()
 
     def poll(self):
         try:
@@ -477,6 +473,8 @@ class Dashboard:
 
     def show(self, d):
         self.latest = d
+        if self.levels_view and self.levels_view.window.winfo_exists():
+            self.levels_view.update(d["best"], d.get("tried", set()))
         level = self.level_by_short.get(d["short"], self.levels[0])
         short = level["short"]
         laps, finished = d["laps"], d["finished"]
@@ -504,27 +502,27 @@ class Dashboard:
         else:
             self.tiles["Finish rate"].set("-", "no test runs yet")
 
-        playable = [level_info for level_info in self.levels if not level_info["note"]]
+        playable = self.levels
         done = sum(level_info["short"] in d["best"] for level_info in playable)
         medals = sum(d["best"].get(level_info["short"], 1e9) <= level_info["author"] for level_info in playable)
         self.tiles["Levels finished"].set(f"{done} of {len(playable)}", f"{medals} beat author")
 
-        rate = f"{d['rate']:.0f} steps/s" if d["rate"] is not None else "measuring speed"
-        self.tiles["Steps, level / total"].set(f"{format_count(d['level_steps'])} / {format_steps(d['steps'])}", rate)
+        rate = f", {d['rate']:.0f}/s" if d["rate"] is not None and d["alive"] else ""
+        self.tiles[STEPS].set(format_steps(d["steps"]), f"{format_count(d['level_steps'])} on {short}{rate}")
 
         if not d["alive"]:
-            self.tiles["Status"].set("■ Stopped", "training is not running", CRITICAL)
+            self.tiles["Status"].set("Stopped", "training is not running", MUTED)
         elif d["log_age"] > STALL_S:
-            self.tiles["Status"].set("! Stalled", f"log quiet for {int(d['log_age'] // 60)} min", WARNING)
+            self.tiles["Status"].set("Stalled", f"log quiet for {int(d['log_age'] // 60)} min", WARNING)
         elif d["games"] < 2:
-            self.tiles["Status"].set("! 1 game", "second game is missing", WARNING)
+            self.tiles["Status"].set("1 game", "second game is missing", WARNING)
         else:
-            self.tiles["Status"].set("✓ Training", f"{d['games']} games running", GOOD)
+            self.tiles["Status"].set("Training", f"{d['games']} games running", GOOD)
 
         if d["commit"] < 1:
-            self.tiles["Memory headroom"].set(f"! {d['commit']:.1f} GB", "very low, close other apps", CRITICAL)
+            self.tiles["Memory headroom"].set(f"{d['commit']:.1f} GB", "very low, close other apps", CRITICAL)
         elif d["commit"] < 2:
-            self.tiles["Memory headroom"].set(f"! {d['commit']:.1f} GB", "getting low", WARNING)
+            self.tiles["Memory headroom"].set(f"{d['commit']:.1f} GB", "getting low", WARNING)
         else:
             self.tiles["Memory headroom"].set(f"{d['commit']:.1f} GB", "commit memory free")
 
@@ -700,7 +698,7 @@ class Dashboard:
             self.canvas.draw_idle()
 
 
-if __name__ == "__main__":
+def main():
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
     machine.make_config_copy()
     if controls.profile() != controls.AI_PROFILE and not controls.training_running():
@@ -710,5 +708,19 @@ if __name__ == "__main__":
             pass
     dashboard = Dashboard(sys.argv[1] if len(sys.argv) > 1 else None, sys.argv[2] if len(sys.argv) > 2 else None)
     if not all(ok for _, ok, *_ in checks.run_all()):
-        dashboard.root.after(500, dashboard.open_controls)
+        dashboard.after_intro.append(dashboard.open_controls)
     dashboard.root.mainloop()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        import traceback
+        from tkinter import messagebox
+
+        os.makedirs(os.path.join(ROOT, "logs"), exist_ok=True)
+        report = os.path.join(ROOT, "logs", "dashboard_error.log")
+        with open(report, "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
+        messagebox.showerror("Revenant", f"The dashboard hit an error and closed.\n\nDetails are in {report}")
