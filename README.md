@@ -4,7 +4,7 @@
 
 <p align="center">
   A self-taught AI for TrackMania Nations Forever.<br>
-  It learns every official level by crashing a lot, then a bit less, then not at all.<br>
+  It learns the official levels by crashing a lot, then a bit less, then not at all.<br>
   <a href="https://revenant.laveryjonez.uk"><strong>revenant.laveryjonez.uk</strong></a>
 </p>
 <p align="center">
@@ -87,7 +87,7 @@ Put them in a `models` folder next to `Revenant.bat` and press **Install** next 
 ## What it can do
 
 **Learning**
-- Works through every official level in order, aiming for the author time on each. Every level keeps its own brain, so coming back to a level carries on from where it stopped.
+- Works through 56 of the 65 official levels in order, aiming for the author time on each. The 8 with a Gold time over two minutes are left out to save time (`max_gold_s` in `config.py`), and E04 has no usable racing line. Every level keeps its own brain, so coming back to a level carries on from where it stopped.
 - Moves on when it beats author, stops improving, or runs out of steps. You can also make it focus on one level until it beats a time you choose.
 - Rewards tuned for Trackmania: a penalty for touching walls, a small speedslide reward, and checkpoint gates that only open when the game really counts the checkpoint.
 - Replays its own best laps every few runs, and laps from other levels now and then, so it doesn't forget how it got fast.
@@ -152,12 +152,13 @@ Revenant is built on [Linesight](https://github.com/Linesight-RL/linesight), an 
 ```
 Revenant.bat                                   start here
 dashboard.py, levels_window.py, theme.py       the main window, the Levels overview, shared colours and fonts
+intro.py                                       the dashboard's opening animation
 control_window.py, controls.py                 the Controls window and what it does
 checks.py, machine.py, paths.py                setup checks, benchmark, finding folders on any PC
 follow_line.py, refeed.py                      lap follower and demo starts
 bruteforce.py, render_lap.py                   lap improver, video and inputs export
 make_art.py, art/                              logo, banner, car livery, profile template
-site/                                          the website at revenant.laveryjonez.uk
+site/, make_site.py                            the website at revenant.laveryjonez.uk, and the script that refreshes its times
 linesight/                                     the AI itself (Linesight with my changes)
 linesight/config_files/config.py               every training setting
 linesight/maps/                                the racing line for each level

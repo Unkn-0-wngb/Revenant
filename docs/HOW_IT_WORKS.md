@@ -69,7 +69,9 @@ So the fastest way to get the most reward is to finish as quickly as possible wi
 
 ## The level loop
 
-Revenant trains on one level at a time and works through all of them in order (`linesight/config_files/all_maps.py`). Its goal on each one is the **author time** (`goal_times`).
+Revenant trains on one level at a time and works through them in order (`linesight/config_files/all_maps.py`). Its goal on each one is the **author time** (`goal_times`).
+
+56 of the 65 official levels are in the loop. `max_gold_s` (120) leaves out the 8 whose Gold time is over two minutes (C05, C14, D01, D14, D15, E02, E03 and E05), because long levels take far more steps per lap. E04 isn't in `all_maps.py` at all, because its record replay respawns and jumps 167 m, so it has no usable racing line. Raise `max_gold_s` to bring the long levels back in.
 
 It stays on a level until:
 

@@ -7,7 +7,7 @@
 <meta name="description" content="Revenant teaches itself TrackMania Nations Forever. 40 of the 65 official levels finished and three author times beaten, from nothing but practice.">
 <meta name="author" content="Joshua Lavery-Jones">
 <meta property="og:title" content="Revenant | Self-taught TrackMania Nations Forever AI">
-<meta property="og:description" content="It learns every official level by crashing a lot, then a bit less, then not at all.">
+<meta property="og:description" content="It learns the official levels by crashing a lot, then a bit less, then not at all.">
 <link rel="canonical" href="https://revenant.laveryjonez.uk/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Revenant">
@@ -19,7 +19,7 @@
 <meta property="og:url" content="https://revenant.laveryjonez.uk/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Revenant | Self-taught TrackMania Nations Forever AI">
-<meta name="twitter:description" content="It learns every official level by crashing a lot, then a bit less, then not at all.">
+<meta name="twitter:description" content="It learns the official levels by crashing a lot, then a bit less, then not at all.">
 <meta name="twitter:image" content="https://revenant.laveryjonez.uk/assets/social.png">
 <meta name="twitter:image:alt" content="Revenant, self-taught Trackmania AI">
 <meta name="theme-color" content="#0c0d0e">
@@ -76,7 +76,7 @@
         <span class="sr-only">Revenant</span>
         <span class="caret" aria-hidden="true"></span>
       </h1>
-      <p class="lede">An AI that teaches itself TrackMania Nations Forever. No recorded runs, no rules about corners. It drives every official level thousands of times and keeps whatever made it faster.</p>
+      <p class="lede">An AI that teaches itself TrackMania Nations Forever. No copied inputs, no rules about corners. It drives each level thousands of times and keeps whatever made it faster.</p>
       <div class="actions">
         <a class="button primary" href="https://github.com/Unkn-0-wngb/Revenant/releases/latest">Download Revenant</a>
         <a class="button" href="https://github.com/Unkn-0-wngb/Revenant">Read the code</a>
@@ -151,7 +151,7 @@
       </li>
       <li>
         <h3>Level loop</h3>
-        <p>Works through all 65 levels in order, with a separate brain for each one.</p>
+        <p>Works through 56 of the 65 levels in order, with a separate brain for each one.</p>
       </li>
     </ol>
 
@@ -186,7 +186,7 @@
     <div class="split">
       <div class="prose">
         <h3>One level at a time</h3>
-        <p>Revenant aims for the author time on every level. It stays on a level until it has finished it at least 10 times, had its 150k steps, and then either beaten author or stopped improving for 100k steps. A level it can't finish gives up after 600k steps and gets another go next time round.</p>
+        <p>Revenant aims for the author time on every level. It stays on a level until it has finished it at least 10 times, had its 150k steps (50k once it has author), and then either beaten author or stopped improving for 100k steps. After 600k steps it moves on regardless, and gets another go next time round. The 8 levels with a Gold time over two minutes are left out to save time, and E04 has no usable racing line, so 56 are in the loop.</p>
         <p>Every 5 runs it replays one of its own best laps, and every 20 one from another level, so it doesn't forget how it got fast.</p>
       </div>
       <figure class="shot">
@@ -224,7 +224,7 @@
       <div>
         <h3>Learning</h3>
         <ul class="ticks">
-          <li>Works through every official level in order, aiming for author on each</li>
+          <li>Works through the official levels in order, aiming for author on each</li>
           <li>A separate brain per level, so coming back carries on where it stopped</li>
           <li>Focus on one level until it beats a time you choose</li>
           <li>Wall penalties, a speedslide reward and checkpoint gates tuned for Trackmania</li>
@@ -281,7 +281,7 @@
       </div>
       <div class="panel" role="tabpanel" id="panel-machine" aria-labelledby="tab-machine" hidden>
         <img src="assets/controls_machine.png" alt="The Machine tab showing the PC's hardware, benchmark timings and recommended settings" width="680" height="740" loading="lazy">
-        <p>Shows your CPU, RAM and graphics card, times a real training batch on your GPU, and recommends how many games to run, the batch size, replay memory and game speed. One button applies them.</p>
+        <p>Shows your CPU, RAM and graphics card, times a real training batch on your GPU, and recommends how many games to run, the batch size, replay memory, how often each memory is reused and game speed. One button applies them.</p>
       </div>
       <div class="panel" role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" hidden>
         <img src="assets/controls_settings.png" alt="The Settings tab with a searchable list of training values" width="680" height="740" loading="lazy">
