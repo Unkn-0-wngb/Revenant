@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /site
+    schedule:
+      interval: monthly
+  - package-ecosystem: pip
+    directory: /linesight
+    schedule:
+      interval: monthly
+    # torch is pinned in constraints.txt on purpose (RTX 50 series note in the README)
+    ignore:
+      - dependency-name: torch
+      - dependency-name: torchvision
