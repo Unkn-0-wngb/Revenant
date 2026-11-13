@@ -15,6 +15,11 @@
 </p>
 
 <p align="center">
+  <a href="https://youtu.be/JItI96sCaXY"><img src="docs/images/video.jpg" alt="Watch the video: My Mate Set a Time I Couldn't Beat, So I Built an AI to Beat It" width="720"></a><br>
+  <a href="https://youtu.be/JItI96sCaXY"><strong>Watch how it started</strong></a> (4:27): my mate's 27.48 on A07, and the AI I built to beat it.
+</p>
+
+<p align="center">
   <img src="docs/images/dashboard.png" alt="The Revenant dashboard">
 </p>
 

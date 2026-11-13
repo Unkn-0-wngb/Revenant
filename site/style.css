@@ -549,6 +549,75 @@ section > * {
   color: var(--muted);
 }
 
+.player {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.player img,
+.player iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.player img {
+  transition: filter 0.2s;
+}
+
+.play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  background: var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.play::after {
+  content: "";
+  position: absolute;
+  left: 38px;
+  top: 30px;
+  border-style: solid;
+  border-width: 18px 0 18px 30px;
+  border-color: transparent transparent transparent var(--carbon);
+}
+
+.player:hover .play,
+.player:focus-visible .play {
+  background: var(--teal-hover);
+  transform: scale(1.08);
+}
+
+.player:hover img {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 640px) {
+  .play {
+    width: 68px;
+    height: 68px;
+    margin: -34px 0 0 -34px;
+  }
+
+  .play::after {
+    left: 27px;
+    top: 21px;
+    border-width: 13px 0 13px 22px;
+  }
+}
+
 .stage {
   position: relative;
   aspect-ratio: 16 / 8;
