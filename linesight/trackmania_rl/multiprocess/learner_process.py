@@ -751,7 +751,7 @@ def learner_process_fn(
                     }
                 )
             for key, value in accumulated_stats.items():
-                if key not in ["alltime_min_ms", "rolling_mean_ms"]:
+                if key not in ["alltime_min_ms", "rolling_mean_ms"] and isinstance(value, (int, float, np.number)):
                     step_stats[key] = value
             for key, value in accumulated_stats["alltime_min_ms"].items():
                 step_stats[f"alltime_min_ms_{key}"] = value
