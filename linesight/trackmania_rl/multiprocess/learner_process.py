@@ -166,7 +166,18 @@ def learner_process_fn(
         accumulated_stats["level_index"] = level_schedule.starting_level(save_dir, config_copy.levels)
         accumulated_stats["level_start_frames"] = accumulated_stats["cumul_number_frames_played"]
     shared_level.value = accumulated_stats["level_index"] % len(config_copy.levels)
-    print(f" Level {config_copy.levels[shared_level.value][0]}", flush=True)
+    current_level = config_copy.levels[shared_level.value][0]
+    print(f" Level {current_level}", flush=True)
+    brain_dir = save_dir
+    if accumulated_stats.get("brain_level") != current_level:
+        level_dir = save_dir / "levels" / current_level
+        if (level_dir / "weights1.torch").exists():
+            load_networks(level_dir, online_network, target_network)
+            with shared_network_lock:
+                uncompiled_shared_network.load_state_dict(uncompiled_online_network.state_dict())
+            brain_dir = level_dir
+            print(f" Main brain isn't {current_level}'s, loaded {current_level}'s own brain instead", flush=True)
+        accumulated_stats["brain_level"] = current_level
 
     accumulated_stats["cumul_number_single_memories_should_have_been_used"] = accumulated_stats["cumul_number_single_memories_used"]
     transitions_learned_last_save = accumulated_stats["cumul_number_single_memories_used"]
@@ -190,8 +201,8 @@ def learner_process_fn(
 
     # noinspection PyBroadException
     try:
-        optimizer1.load_state_dict(torch.load(f=save_dir / "optimizer1.torch", weights_only=False))
-        scaler.load_state_dict(torch.load(f=save_dir / "scaler.torch", weights_only=False))
+        optimizer1.load_state_dict(torch.load(f=brain_dir / "optimizer1.torch", weights_only=False))
+        scaler.load_state_dict(torch.load(f=brain_dir / "scaler.torch", weights_only=False))
         print(" =========================     Optimizer loaded !     ================================")
     except:
         print(" Could not load optimizer")
@@ -253,6 +264,29 @@ def learner_process_fn(
                 break
 
         importlib.reload(config_copy)
+
+        names = [entry[0] for entry in config_copy.levels]
+        brain_level = accumulated_stats.get("brain_level")
+        if brain_level in names:
+            if names[accumulated_stats["level_index"] % len(names)] != brain_level:
+                accumulated_stats["level_index"] = names.index(brain_level)
+                shared_level.value = accumulated_stats["level_index"]
+        elif brain_level:
+            utilities.save_level_brain(save_dir / "levels" / brain_level, brain_level, brain_level, online_network, target_network, optimizer1, scaler)
+            return_level = accumulated_stats.pop("return_level", None)
+            accumulated_stats.pop("return_index", None)
+            index = names.index(return_level) if return_level in names else accumulated_stats["level_index"] % len(names)
+            starting_dir = save_dir / "levels" / names[index]
+            if (starting_dir / "weights1.torch").exists():
+                load_networks(starting_dir, online_network, target_network)
+                with shared_network_lock:
+                    uncompiled_shared_network.load_state_dict(uncompiled_online_network.state_dict())
+            accumulated_stats["level_index"] = index
+            accumulated_stats["brain_level"] = names[index]
+            accumulated_stats["level_start_frames"] = accumulated_stats["cumul_number_frames_played"]
+            accumulated_stats["level_finishes"] = 0
+            shared_level.value = index
+            print(f" {brain_level} left the level list, saved its brain and moved to {names[index]}", flush=True)
 
         new_tensorboard_suffix = utilities.from_staircase_schedule(
             config_copy.tensorboard_suffix_schedule,
@@ -464,8 +498,9 @@ def learner_process_fn(
             starting_level = config_copy.levels[next_level][0]
             finished_dir = save_dir / "levels" / finished_level
             starting_dir = save_dir / "levels" / starting_level
-            finished_dir.mkdir(parents=True, exist_ok=True)
-            utilities.save_checkpoint(finished_dir, online_network, target_network, optimizer1, scaler)
+            utilities.save_level_brain(
+                finished_dir, finished_level, accumulated_stats.get("brain_level"), online_network, target_network, optimizer1, scaler
+            )
             has_own_ai = (starting_dir / "weights1.torch").exists()
             if has_own_ai:
                 load_networks(starting_dir, online_network, target_network)
@@ -478,6 +513,7 @@ def learner_process_fn(
             buffer, buffer_test = make_buffers(memory_size)
             accumulated_stats["cumul_number_single_memories_should_have_been_used"] = accumulated_stats["cumul_number_single_memories_used"]
             accumulated_stats["level_index"] = next_level
+            accumulated_stats["brain_level"] = starting_level
             accumulated_stats["level_start_frames"] = accumulated_stats["cumul_number_frames_played"]
             print(f" Left {finished_level} after {accumulated_stats.get('level_finishes', 0)} finishes", flush=True)
             accumulated_stats["level_finishes"] = 0

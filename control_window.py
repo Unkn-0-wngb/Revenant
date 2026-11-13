@@ -309,7 +309,11 @@ class ControlWindow:
         level = self.focus_level.get()
         self.focus_target.delete(0, "end")
         if level != "none" and self.author.get(level):
-            self.focus_target.insert(0, str(self.author[level]))
+            target = self.author[level]
+            best = controls.best_time(level)
+            if best is not None and best <= target:
+                target = round(best - 0.01, 2)
+            self.focus_target.insert(0, str(target))
 
     def apply_focus(self):
         level = self.focus_level.get()

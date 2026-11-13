@@ -193,6 +193,19 @@ def save_checkpoint(
     torch.save(optimizer.state_dict(), checkpoint_dir / "optimizer1.torch")
     torch.save(scaler.state_dict(), checkpoint_dir / "scaler.torch")
 
+
+def save_level_brain(level_dir: Path, level: str, brain_level, online_network, target_network, optimizer, scaler):
+    if brain_level != level:
+        print(f" Not saving {level}: the network in memory is {brain_level + chr(39) + 's' if brain_level else 'from an unknown level'}, keeping {level}'s brain as it is", flush=True)
+        return False
+    level_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("weights1.torch", "weights2.torch", "scaler.torch"):
+        if (level_dir / name).exists():
+            shutil.copy2(level_dir / name, level_dir / (name + ".bak"))
+    save_checkpoint(level_dir, online_network, target_network, optimizer, scaler)
+    return True
+
+
 def set_random_seed(seed: int):
     random.seed(seed)
     np.random.seed(seed)

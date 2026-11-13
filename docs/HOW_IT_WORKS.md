@@ -81,9 +81,9 @@ It stays on a level until:
 
 `max_steps_per_level` (600k) stops a level it can't finish from holding everything up. It'll come back to it next time round.
 
-Every level has its own brain in `linesight/save/all_levels_run1/levels/<level>`. When it moves on, it saves the current level's brain and loads the next level's, or starts from the last one if the next level is new.
+Every level has its own brain in `linesight/save/all_levels_run1/levels/<level>`. When it moves on, it saves the current level's brain and loads the next level's, or starts from the last one if the next level is new. It remembers which level the brain in memory belongs to (`brain_level` in the stats) and only ever saves it as that level's brain, keeping the previous one as `weights1.torch.bak`. If the main brain on startup belongs to a different level than the one it's on (for example straight after installing the pretrained models), it loads that level's own brain instead.
 
-**Focus.** `focus_level` and `focus_target_s` (or the Focus box on the Run tab) jump to one level and stay there until it beats that time, then go back to where the loop was.
+**Focus.** `focus_level` and `focus_target_s` (or the Focus box on the Run tab) jump to one level and stay there until it beats that time, then go back to where the loop was. The target has to be under the level's current best, or the focus ends at once. Long levels are only in the level list while they're the focus, so the loop keeps track of levels by name rather than by their place in the list.
 
 **Remembering what worked.** Every 5 runs (`best_lap_replay_every_n_runs`) it replays one of its own best laps on the current level, and every 20 (`shared_lap_replay_every_n_runs`) one from another level. That keeps good driving in the replay memory so it doesn't drift away from it.
 

@@ -87,7 +87,7 @@ Everything Revenant has learned is on the [Releases](../../releases) page instea
 | `revenant_levels_A.zip` to `revenant_levels_D.zip` | one brain per level it's trained on |
 | `revenant_laps.zip` | the D02 demo lap for demo starts and the bruteforced A07 lap |
 
-Put them in a `models` folder next to `Revenant.bat` and press **Install** next to *Trained models* on the Setup tab (or use *Install models from a folder*). It carries on from exactly where Revenant is.
+Put them in a `models` folder next to `Revenant.bat` and press **Install** next to *Trained models* on the Setup tab (or use *Install models from a folder*). It carries on from exactly where Revenant is. If you set a focus straight after installing, pick a target under that level's current best, otherwise the focus ends straight away (the dashboard won't let you set one that's already beaten).
 
 ## What it can do
 

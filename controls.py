@@ -234,7 +234,20 @@ def focus():
     return current("focus_level") or "", current("focus_target_s")
 
 
+def best_time(level):
+    path = os.path.join(os.path.dirname(WEIGHTS), "accumulated_stats.joblib")
+    if not os.path.exists(path):
+        return None
+    import joblib
+
+    ms = joblib.load(path).get("alltime_min_ms", {}).get(level)
+    return ms / 1000 if ms and ms < 300000 else None
+
+
 def set_focus(level, target):
+    best = best_time(level)
+    if best is not None and float(target) >= best:
+        return f"{level}'s best is already {best:.2f} s, so a {float(target):.2f} s target would end the focus straight away. Pick a target under {best:.2f}."
     first = set_setting("focus_target_s", repr(float(target)))
     if "set to" not in first:
         return first

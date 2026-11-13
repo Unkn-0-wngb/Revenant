@@ -40,13 +40,20 @@ def focus_index(stats, config):
 def next_level_index(stats, config):
     index = stats["level_index"] % len(config.levels)
     focus = focus_index(stats, config)
+    names = [entry[0] for entry in config.levels]
     if focus is not None:
         if index != focus:
-            stats.setdefault("return_index", index)
+            stats.setdefault("return_level", names[index])
             return focus
         return None
+    if "return_level" in stats:
+        level = stats.pop("return_level")
+        stats.pop("return_index", None)
+        if level in names and names.index(level) != index:
+            return names.index(level)
+        return None
     if "return_index" in stats:
-        return stats.pop("return_index")
+        return stats.pop("return_index") % len(names)
     short_name = config.levels[index][0]
     frames = stats["cumul_number_frames_played"]
     used = frames - stats["level_start_frames"]
