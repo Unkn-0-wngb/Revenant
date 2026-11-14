@@ -141,19 +141,69 @@ def fix_maps():
     return "Downloading the official maps in a separate window."
 
 
+EXTRAS = {"best laps": "best_laps", "demo laps": "laps", "training history": "history"}
+
+
+def zip_kind(path):
+    try:
+        with zipfile.ZipFile(path) as archive:
+            first = archive.namelist()[0]
+    except (zipfile.BadZipFile, IndexError, OSError):
+        return None
+    for prefix, kind in (
+        ("all_levels_run1/best_laps/", "best_laps"),
+        ("all_levels_run1/levels/", "levels"),
+        ("all_levels_run1/", "core"),
+        ("bruteforce/", "laps"),
+        ("linesight/tensorboard/", "history"),
+    ):
+        if first.startswith(prefix):
+            return kind
+    return None
+
+
+def missing_extras():
+    missing = []
+    if not glob.glob(os.path.join(RUN, "best_laps", "*.joblib")):
+        missing.append("best laps")
+    if not os.path.exists(os.path.join(paths.ROOT, "bruteforce", "D02_follow_partial.npy")):
+        missing.append("demo laps")
+    if not glob.glob(os.path.join(paths.LINESIGHT, "tensorboard", "all_levels_run1*", "events.*")):
+        missing.append("training history")
+    return missing
+
+
 def check_models():
     installed = os.path.exists(os.path.join(RUN, "weights1.torch"))
-    levels = len(glob.glob(os.path.join(RUN, "levels", "*", "weights1.torch")))
     zips = glob.glob(os.path.join(MODELS, "*.zip"))
-    if installed:
-        return True, f"pretrained: main brain and {levels} level brains"
-    if zips:
-        return False, f"{len(zips)} pretrained zips ready to install"
-    return True, "none, starting fresh (pretrained ones are on Releases)"
+    if not installed:
+        if zips:
+            return False, f"{len(zips)} pretrained zips ready to install"
+        return True, "none, starting fresh (pretrained ones are on Releases)"
+    levels = len(glob.glob(os.path.join(RUN, "levels", "*", "weights1.torch")))
+    laps = len(glob.glob(os.path.join(RUN, "best_laps", "*.joblib")))
+    optimizer = os.path.join(RUN, "optimizer1.torch")
+    parts = [f"main brain, {levels} level brains"]
+    if os.path.exists(optimizer) and os.path.getsize(optimizer) > 100_000:
+        parts.append("optimizer state")
+    if laps:
+        parts.append(f"{laps} best laps")
+    missing = missing_extras()
+    if "training history" not in missing:
+        parts.append("history")
+    ready = {zip_kind(z) for z in zips}
+    installable = [name for name in missing if EXTRAS[name] in ready]
+    if installable:
+        listed = installable[0] if len(installable) == 1 else ", ".join(installable[:-1]) + " and " + installable[-1]
+        return False, f"{', '.join(parts)}; {listed} ready to install"
+    return True, ", ".join(parts)
 
 
-def install_models(folder=MODELS):
+def install_models(folder=None, kinds=None):
+    folder = folder or MODELS
     zips = sorted(glob.glob(os.path.join(folder, "*.zip")))
+    if kinds is not None:
+        zips = [z for z in zips if zip_kind(z) in kinds]
     if not zips:
         return f"No pretrained zips in {folder}. Download them from the Releases page into that folder."
     os.makedirs(SAVE, exist_ok=True)
@@ -166,6 +216,11 @@ def install_models(folder=MODELS):
 
 
 def fix_models():
+    if os.path.exists(os.path.join(RUN, "weights1.torch")):
+        if controls.training_running():
+            return "Stop training first."
+        kinds = {EXTRAS[name] for name in missing_extras()}
+        return install_models(kinds=kinds) + " The brains you already have were left alone."
     return install_models()
 
 

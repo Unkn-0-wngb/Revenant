@@ -5,7 +5,8 @@ on:
     branches: [main]
     paths: ["site/**"]
   pull_request:
-    paths: ["site/**"]
+    paths: ["site/**", ".github/workflows/site.yml"]
+  workflow_dispatch:
 
 jobs:
   build:

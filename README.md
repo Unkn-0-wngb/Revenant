@@ -89,7 +89,7 @@ Everything Revenant has learned is on the [Releases](../../releases) page instea
 | `revenant_laps.zip` | the demo laps for demo starts and the bruteforced A07 lap |
 | `revenant_history.zip` | the training graphs, for TensorBoard and the dashboard's level history |
 
-Put them all in a `models` folder next to `Revenant.bat` and press **Install** next to *Trained models* on the Setup tab (or use *Install models from a folder*). It carries on from exactly where Revenant is. If you set a focus straight after installing, pick a target under that level's current best, otherwise the focus ends straight away (the dashboard won't let you set one that's already beaten).
+Put them all in a `models` folder next to `Revenant.bat` and press **Install** next to *Trained models* on the Setup tab (or use *Install models from a folder*). It carries on from exactly where Revenant is. If you already have brains installed, *Install* only adds the parts you're missing (best laps, demo laps, training history) and leaves your brains alone. If you set a focus straight after installing, pick a target under that level's current best, otherwise the focus ends straight away (the dashboard won't let you set one that's already beaten).
 
 ## What it can do
 
