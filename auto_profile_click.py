@@ -50,11 +50,27 @@ def write_log(message):
         f.write(f"{time.strftime('%d/%m %H:%M:%S')} {message}\n")
 
 
+def base_port():
+    try:
+        with open(USER_CONFIG, encoding="utf-8") as f:
+            return int(re.search(r"^base_tmi_port = (\d+)", f.read(), re.M).group(1))
+    except (OSError, AttributeError):
+        return None
+
+
+def training_port(cmdline):
+    match = re.search(r"custom_port (\d+)", " ".join(cmdline or []))
+    base = base_port()
+    if not match or base is None:
+        return True
+    return base <= int(match.group(1)) < base + paths.HELPER_PORT_OFFSET
+
+
 def game_pids():
     pids = set()
-    for p in psutil.process_iter(["name"]):
+    for p in psutil.process_iter(["name", "cmdline"]):
         try:
-            if (p.info["name"] or "").lower() == "tmforever.exe":
+            if (p.info["name"] or "").lower() == "tmforever.exe" and training_port(p.info["cmdline"]):
                 pids.add(p.pid)
         except psutil.Error:
             pass

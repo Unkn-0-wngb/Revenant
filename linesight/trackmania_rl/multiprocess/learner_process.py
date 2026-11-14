@@ -303,8 +303,9 @@ def learner_process_fn(
             config_copy.memory_size_schedule,
             accumulated_stats["cumul_number_frames_played"],
         )
-        if new_memory_size != memory_size:
-            buffer, buffer_test = resize_buffers(buffer, buffer_test, new_memory_size)
+        if new_memory_size != memory_size or new_memory_size_start_learn != memory_size_start_learn:
+            if new_memory_size != memory_size:
+                buffer, buffer_test = resize_buffers(buffer, buffer_test, new_memory_size)
             offset_cumul_number_single_memories_used += (
                 new_memory_size_start_learn - memory_size_start_learn
             ) * config_copy.number_times_single_memory_is_used_before_discard

@@ -17,8 +17,9 @@ from config_files import config_copy, user_config
 from trackmania_rl.tmi_interaction.tminterface2 import MessageType, TMInterface
 
 import auto_profile_click
+import paths
 
-PORT = user_config.base_tmi_port + 2
+PORT = user_config.base_tmi_port + paths.FOLLOWER_PORT_OFFSET
 SPEED = 20
 W, H = 960, 720
 BAR = 90

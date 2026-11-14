@@ -1,4 +1,4 @@
-# Troubleshooting
+﻿# Troubleshooting
 
 Start with the dashboard's **Setup** tab. Most problems show up there as an amber ! with a button next to it.
 
@@ -60,11 +60,14 @@ That's what the lap follower and demo starts are for (Run tab):
 2. When it has a lap (or runs out of time, it keeps the part it managed in `bruteforce/<level>_follow_partial.npy`), start demo starts on that level, with a step range that begins a bit before the hard part.
 3. Set focus to that level so the loop stays there.
 
-**I changed the memory size and the learner crashed.**
-The replay memory can't shrink while training runs. The dashboard blocks that, but editing `config.py` by hand doesn't. Stop training, change it, then start again.
+**I changed the memory size while training.**
+That's fine now. Shrinking the replay memory keeps its newest memories and drops the oldest; growing it keeps everything.
+
+**Did a change actually help?**
+Don't judge from training laps, they include random exploration. Run `benchmark.py` before and after (see *Testing the AI* in `HOW_IT_WORKS.md`) and compare the two files in `logs/`.
 
 **Ports already in use.**
-Something else is using 8478 to 8480. Press *Fix* next to *Network ports* and Revenant moves to free ones.
+Something else is using one of Revenant's ports (8478 to 8487 by default: training games from 8478, the lap follower on 8485, bruteforce on 8486, the benchmark on 8487). Press *Fix* next to *Network ports* and Revenant moves to free ones.
 
 ## Logs worth knowing about
 

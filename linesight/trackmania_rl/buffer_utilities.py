@@ -276,9 +276,16 @@ class CustomPrioritizedSampler(PrioritizedSampler):
 
 
 def copy_buffer_content_to_other_buffer(source_buffer: ReplayBuffer, target_buffer: ReplayBuffer) -> None:
-    assert source_buffer._storage.max_size <= target_buffer._storage.max_size
+    items = list(source_buffer._storage._storage)
+    if len(items) > target_buffer._storage.max_size:
+        cursor = source_buffer._writer._cursor if len(items) == source_buffer._storage.max_size else len(items)
+        newest_last = items[cursor:] + items[:cursor]
+        if newest_last:
+            target_buffer.extend(newest_last[-target_buffer._storage.max_size :])
+        return
 
-    target_buffer.extend(source_buffer._storage._storage)
+    if items:
+        target_buffer.extend(items)
 
     if isinstance(source_buffer._sampler, CustomPrioritizedSampler) and isinstance(target_buffer._sampler, CustomPrioritizedSampler):
         target_buffer._sampler._average_priority = source_buffer._sampler._average_priority

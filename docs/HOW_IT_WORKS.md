@@ -1,4 +1,4 @@
-# How Revenant works
+﻿# How Revenant works
 
 This goes through what happens when you press Start, from the game up to the level loop. Setting names in `code` are in `linesight/config_files/config.py` and can all be changed from the dashboard's Settings tab.
 
@@ -6,7 +6,7 @@ This goes through what happens when you press Start, from the game up to the lev
 
 ```mermaid
 flowchart LR
-    D["Dashboard<br>Setup · Run · Machine · Settings · Profile"]
+    D["Dashboard<br>Setup Â· Run Â· Machine Â· Settings Â· Profile"]
     G1["Game 1<br>TrackMania + TMInterface"]
     G2["Game 2<br>TrackMania + TMInterface"]
     C["Collectors<br>one per game, drive with<br>the newest network"]
@@ -30,7 +30,7 @@ flowchart LR
 
 Every 50 ms of game time (`tm_engine_step_per_action` = 5 physics steps) the game pauses and the AI gets:
 
-- a 160×120 greyscale picture of the screen
+- a 160Ã—120 greyscale picture of the screen
 - the car's speed, rotation and angular speed
 - for each wheel: whether it's touching the ground, sliding, and what surface it's on
 - the gear and engine RPM
@@ -122,6 +122,18 @@ The Machine tab:
 
 The rules were calibrated on the PC Revenant was trained on, where they give exactly the settings it trained with.
 
+## Testing the AI
+
+`benchmark.py` drives levels with no randomness on its own game (port base+9), so it can run next to training, and writes the results to `logs/benchmark_<date>.json`:
+
+```
+venv\Scripts\python.exe benchmark.py                  8 fixed levels, 3 laps each
+venv\Scripts\python.exe benchmark.py finished 5       every level it has finished, 5 laps each
+venv\Scripts\python.exe benchmark.py A07,D02 3 <folder>   these levels, with the brain in <folder> instead of each level's own
+```
+
+For each level it gives the finish rate, best and median time, how far along the line it got, wall contact per lap and checkpoint times. Run it before and after any change to settings and compare the files. The first run (13 Nov, 2 laps each): A07 28.50, A11 21.61, B01 0/2 (missed the finish), B10 52.17, C01 33.02, C08 33.33, D01 152.27, D03 16.05.
+
 ## The profile and car
 
 The dashboard makes a local `Revenant` profile (no online account) by copying the settings of an existing profile, or a built-in template, and changing its name and ID. It installs the logo as its avatar and the Revenant car skin, and writes the skin's checksum into the profile so the game accepts it straight away. `make_art.py` draws both: the car is a recoloured stock car with every sticker replaced and turned to match how the game maps it.
@@ -132,7 +144,7 @@ The dashboard makes a local `Revenant` profile (no online account) by copying th
 |---|---|
 | `linesight/save/all_levels_run1/` | the brains, replay of best laps, training state |
 | `linesight/tensorboard/` | the numbers behind the graphs |
-| `logs/` | training log, clicker log, follower and bruteforce logs |
+| `logs/` | training log, clicker log, follower and bruteforce logs, benchmark results |
 | `bruteforce/` | follower laps, bruteforced laps, the demo start queue |
 | `machine.json` | your PC's benchmark |
 | Documents\TrackMania\Profiles | the Revenant profile |

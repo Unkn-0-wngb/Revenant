@@ -10,6 +10,11 @@ LINESIGHT = os.path.join(ROOT, "linesight")
 VENV_PYTHON = os.path.join(ROOT, "venv", "Scripts", "python.exe")
 VENV_PYTHONW = os.path.join(ROOT, "venv", "Scripts", "pythonw.exe")
 GAME_FOLDER_NAME = "TrackMania Nations Forever"
+HELPER_PORT_OFFSET = 7
+FOLLOWER_PORT_OFFSET = 7
+BRUTEFORCE_PORT_OFFSET = 8
+BENCHMARK_PORT_OFFSET = 9
+PORT_BLOCK = 10
 
 
 class GUID(ctypes.Structure):

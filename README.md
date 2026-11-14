@@ -83,11 +83,13 @@ Everything Revenant has learned is on the [Releases](../../releases) page instea
 
 | File | What's in it |
 |---|---|
-| `revenant_core.zip` | the main brain and its training progress |
+| `revenant_core.zip` | the main brain, its optimizer state and its training progress |
 | `revenant_levels_A.zip` to `revenant_levels_D.zip` | one brain per level it's trained on |
-| `revenant_laps.zip` | the D02 demo lap for demo starts and the bruteforced A07 lap |
+| `revenant_best_laps.zip` | its best laps on A07, D02 and D03, which it replays to keep good driving in memory |
+| `revenant_laps.zip` | the demo laps for demo starts and the bruteforced A07 lap |
+| `revenant_history.zip` | the training graphs, for TensorBoard and the dashboard's level history |
 
-Put them in a `models` folder next to `Revenant.bat` and press **Install** next to *Trained models* on the Setup tab (or use *Install models from a folder*). It carries on from exactly where Revenant is. If you set a focus straight after installing, pick a target under that level's current best, otherwise the focus ends straight away (the dashboard won't let you set one that's already beaten).
+Put them all in a `models` folder next to `Revenant.bat` and press **Install** next to *Trained models* on the Setup tab (or use *Install models from a folder*). It carries on from exactly where Revenant is. If you set a focus straight after installing, pick a target under that level's current best, otherwise the focus ends straight away (the dashboard won't let you set one that's already beaten).
 
 ## What it can do
 
@@ -127,7 +129,7 @@ Open it with `Revenant.bat`. It types out the Revenant logo while it reads the t
 | <img src="docs/images/controls_setup.png" width="400"> | **Setup** checks the game, TMLoader, the TMInterface plugin, the official maps, the trained models, the Revenant profile, network ports and the benchmark. Anything missing gets a button. |
 | <img src="docs/images/controls_run.png" width="400"> | **Run** starts and stops training, sets a focus level, and runs demo starts, the lap follower and bruteforce. |
 | <img src="docs/images/controls_machine.png" width="400"> | **Machine** shows your CPU, RAM and graphics card, times a real training batch and a driving decision on your GPU, and recommends how many games to run, the batch size, replay memory, memory reuse and game speed. One button applies them. |
-| <img src="docs/images/controls_settings.png" width="400"> | **Settings** has every training value, searchable, with notes. Changes reach a running AI within about a minute. It won't let you shrink the memory while training runs, because that crashes it. |
+| <img src="docs/images/controls_settings.png" width="400"> | **Settings** has every training value, searchable, with notes. Changes reach a running AI within about a minute, including the replay memory size. |
 | <img src="docs/images/controls_profile.png" width="400"> | **Profile** picks which Trackmania profile the AI drives with, and can make and dress the Revenant profile. |
 
 ## What you need
@@ -162,6 +164,7 @@ control_window.py, controls.py                 the Controls window and what it d
 checks.py, machine.py, paths.py                setup checks, benchmark, finding folders on any PC
 follow_line.py, refeed.py                      lap follower and demo starts
 bruteforce.py, render_lap.py                   lap improver, video and inputs export
+benchmark.py                                   test laps with no randomness, to check whether a change helped
 make_art.py, art/                              logo, banner, car livery, profile template
 site/, make_site.py                            the website at revenant.laveryjonez.uk, and the script that refreshes its times
 linesight/                                     the AI itself (Linesight with my changes)

@@ -114,7 +114,7 @@ prio_beta = np.float32(1)
 number_times_single_memory_is_used_before_discard = 16  # was 32; GPU-bound on RTX 2060 Super
 
 memory_size_schedule = [
-    (0, (50_000, 35_000)),
+    (0, (50_000, 20_000)),
 ]
 lr_schedule = [
     (0, 1e-3),

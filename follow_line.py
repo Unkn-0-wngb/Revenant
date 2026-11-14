@@ -25,8 +25,9 @@ from trackmania_rl.contact_materials import physics_behavior_fromint
 from trackmania_rl.tmi_interaction.tminterface2 import MessageType, TMInterface
 
 import auto_profile_click
+import paths
 
-PORT = user_config.base_tmi_port + 2
+PORT = user_config.base_tmi_port + paths.FOLLOWER_PORT_OFFSET
 SPEED = 200
 FIRST = 2
 SECOND = 6

@@ -198,16 +198,17 @@ def check_ports():
     if controls.training_running() or controls.game_count():
         return True, "in use by Revenant"
     base = current_port()
-    busy = [p for p in range(base, base + 3) if not port_free(p)]
-    return not busy, f"{base} to {base + 2} free" if not busy else f"port {busy[0]} is taken by another program"
+    last = base + paths.PORT_BLOCK - 1
+    busy = [p for p in range(base, last + 1) if not port_free(p)]
+    return not busy, f"{base} to {last} free" if not busy else f"port {busy[0]} is taken by another program"
 
 
 def fix_ports():
-    for base in range(8478, 9400, 10):
-        if all(port_free(p) for p in range(base, base + 3)):
+    for base in range(8478, 9400, paths.PORT_BLOCK):
+        if all(port_free(p) for p in range(base, base + paths.PORT_BLOCK)):
             text = controls.read_text(controls.USER_CONFIG)
             controls.write_text(controls.USER_CONFIG, re.sub(r"^base_tmi_port = \d+", f"base_tmi_port = {base}", text, flags=re.M))
-            return f"Moved Revenant to ports {base} to {base + 2}."
+            return f"Moved Revenant to ports {base} to {base + paths.PORT_BLOCK - 1}."
     return "Couldn't find free ports."
 
 

@@ -16,3 +16,5 @@ site/node_modules/
 site/dist/
 site/package-lock.json
 site/.wrangler/
+backup/
+reference_replays_normal

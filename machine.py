@@ -167,7 +167,7 @@ def recommend(hw, bench):
     return {
         "gpu_collectors_count": games,
         "batch_size": batch,
-        "memory_size_schedule": [(0, (memory, int(memory * 0.7) // 5000 * 5000))],
+        "memory_size_schedule": [(0, (memory, int(memory * 0.4) // 5000 * 5000))],
         "number_times_single_memory_is_used_before_discard": reuse,
         "running_speed": speed,
     }, notes

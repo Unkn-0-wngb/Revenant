@@ -195,10 +195,6 @@ def char_index(lines, lineno, col):
     return before + len(lines[lineno - 1].encode("utf-8")[:col].decode("utf-8"))
 
 
-def largest_memory(schedule):
-    return max(size[0] for _, size in schedule)
-
-
 def set_setting(name, new_value):
     try:
         value = ast.literal_eval(new_value)
@@ -206,9 +202,6 @@ def set_setting(name, new_value):
         if not isinstance(current(name), str):
             return f"{name} was not changed: {new_value!r} is not a valid value ({e})."
         value = new_value
-    if name == "memory_size_schedule" and training_running():
-        if largest_memory(value) < largest_memory(current(name)):
-            return "Memory can't shrink while training runs (it crashes the learner). Stop training first."
     text = read_text(CONFIG)
     for node in ast.parse(text).body:
         if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id == name:
