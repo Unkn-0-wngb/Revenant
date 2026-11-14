@@ -2,7 +2,8 @@
 Decides which level is being trained, and which runs a collector should do next.
 A level is only left once it has been finished min_finishes_per_level times this visit and has had its step budget
 (smaller once the goal time, author, is beaten). Without the goal it also stays while it keeps setting faster times.
-max_steps_per_level stops a level that can't be finished from holding up the loop forever.
+max_steps_per_level stops a level that can't be finished from holding up the loop forever, and a level with no finishes
+this visit is left once it has gone steps_without_progress without getting further along the line.
 focus_level jumps to one level and stays there until focus_target_s is beaten (or focus_level is cleared), then goes
 back to the level it left.
 """
@@ -60,6 +61,10 @@ def next_level_index(stats, config):
     move_on = (index + 1) % len(config.levels)
     if used >= config.max_steps_per_level:
         return move_on
+    if stats.get("level_finishes", 0) == 0:
+        stalled = frames - stats.get("level_furthest_frames", stats["level_start_frames"])
+        if stalled >= config.steps_without_progress:
+            return move_on
     if stats.get("level_finishes", 0) < config.min_finishes_per_level:
         return None
     if used < step_budget(short_name, stats, config):

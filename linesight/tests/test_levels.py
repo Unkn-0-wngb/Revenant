@@ -23,6 +23,7 @@ def make_config(names, focus="", target=0.0):
         max_steps_per_level=100_000,
         min_finishes_per_level=1,
         steps_without_improvement=10_000,
+        steps_without_progress=5_000,
     )
 
 
@@ -57,6 +58,30 @@ class FocusTests(unittest.TestCase):
         stats = make_stats(0)
         stats["return_index"] = 5
         self.assertEqual(level_schedule.next_level_index(stats, config), 2)
+
+
+class StalledLevelTests(unittest.TestCase):
+    def test_leaves_a_level_that_stopped_getting_further(self):
+        config = make_config(["A01", "B01"])
+        stats = make_stats(0)
+        stats["level_furthest_frames"] = 1_000
+        stats["cumul_number_frames_played"] = 5_999
+        self.assertIsNone(level_schedule.next_level_index(stats, config))
+        stats["cumul_number_frames_played"] = 6_000
+        self.assertEqual(level_schedule.next_level_index(stats, config), 1)
+
+    def test_counts_from_the_start_of_the_visit(self):
+        config = make_config(["A01", "B01"])
+        stats = make_stats(0)
+        stats["cumul_number_frames_played"] = 5_000
+        self.assertEqual(level_schedule.next_level_index(stats, config), 1)
+
+    def test_a_level_that_is_finishing_stays(self):
+        config = make_config(["A01", "B01"])
+        stats = make_stats(0)
+        stats["level_finishes"] = 3
+        stats["cumul_number_frames_played"] = 9_000
+        self.assertIsNone(level_schedule.next_level_index(stats, config))
 
 
 class LevelBrainTests(unittest.TestCase):

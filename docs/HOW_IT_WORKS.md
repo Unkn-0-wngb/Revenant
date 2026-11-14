@@ -81,6 +81,8 @@ It stays on a level until:
 
 `max_steps_per_level` (600k) stops a level it can't finish from holding everything up. It'll come back to it next time round.
 
+A level it hasn't finished yet this visit is also left once it has gone 200k steps without getting at least 10 m further along the line than before (`steps_without_progress`, `progress_margin_zones`). Levels it can't finish tend to reach their furthest point early and then repeat the same crash: on 13-14 Nov, A05, D09, D11, D12 and E01 spent 250k-570k steps each after their furthest point without getting any further, about 5.5 of 14 hours.
+
 Every level has its own brain in `linesight/save/all_levels_run1/levels/<level>`. When it moves on, it saves the current level's brain and loads the next level's, or starts from the last one if the next level is new. It remembers which level the brain in memory belongs to (`brain_level` in the stats) and only ever saves it as that level's brain, keeping the previous one as `weights1.torch.bak`. If the main brain on startup belongs to a different level than the one it's on (for example straight after installing the pretrained models), it loads that level's own brain instead.
 
 **Focus.** `focus_level` and `focus_target_s` (or the Focus box on the Run tab) jump to one level and stay there until it beats that time, then go back to where the loop was. The target has to be under the level's current best, or the focus ends at once. Long levels are only in the level list while they're the focus, so the loop keeps track of levels by name rather than by their place in the list.

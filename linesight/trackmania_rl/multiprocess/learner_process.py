@@ -285,6 +285,8 @@ def learner_process_fn(
             accumulated_stats["brain_level"] = names[index]
             accumulated_stats["level_start_frames"] = accumulated_stats["cumul_number_frames_played"]
             accumulated_stats["level_finishes"] = 0
+            accumulated_stats.pop("level_furthest_zone", None)
+            accumulated_stats.pop("level_furthest_frames", None)
             shared_level.value = index
             print(f" {brain_level} left the level list, saved its brain and moved to {names[index]}", flush=True)
 
@@ -487,6 +489,11 @@ def learner_process_fn(
                 inputs_only=True,
             )
 
+        if not forced and map_name == config_copy.levels[shared_level.value][0]:
+            if rollout_results["furthest_zone_idx"] > accumulated_stats.get("level_furthest_zone", 0) + config_copy.progress_margin_zones:
+                accumulated_stats["level_furthest_zone"] = rollout_results["furthest_zone_idx"]
+                accumulated_stats["level_furthest_frames"] = accumulated_stats["cumul_number_frames_played"]
+
         if not forced and map_name == config_copy.levels[shared_level.value][0] and end_race_stats["race_finished"]:
             accumulated_stats["level_finishes"] = accumulated_stats.get("level_finishes", 0) + 1
             if end_race_stats["race_time"] < accumulated_stats.get("level_best_ms", 99999999999):
@@ -520,6 +527,8 @@ def learner_process_fn(
             accumulated_stats["level_finishes"] = 0
             accumulated_stats.pop("level_best_ms", None)
             accumulated_stats.pop("level_best_frames", None)
+            accumulated_stats.pop("level_furthest_zone", None)
+            accumulated_stats.pop("level_furthest_frames", None)
             shared_level.value = next_level
             print(f" Level {starting_level}, {'own AI loaded' if has_own_ai else f'new, starting from {finished_level}'}", flush=True)
 

@@ -95,7 +95,7 @@ Put them all in a `models` folder next to `Revenant.bat` and press **Install** n
 
 **Learning**
 - Works through 56 of the 65 official levels in order, aiming for the author time on each. The 8 with a Gold time over two minutes are left out to save time (`max_gold_s` in `config.py`), and E04 has no usable racing line. Every level keeps its own brain, so coming back to a level carries on from where it stopped.
-- Moves on when it beats author, stops improving, or runs out of steps. You can also make it focus on one level until it beats a time you choose.
+- Moves on when it beats author, stops improving, stops getting further on a level it can't finish yet, or runs out of steps. You can also make it focus on one level until it beats a time you choose.
 - Rewards tuned for Trackmania: a penalty for touching walls, a small speedslide reward, and checkpoint gates that only open when the game really counts the checkpoint.
 - Replays its own best laps every few runs, and laps from other levels now and then, so it doesn't forget how it got fast.
 
