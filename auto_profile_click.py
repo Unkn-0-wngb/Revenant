@@ -1,14 +1,14 @@
 """Gets newly launched games past the profile screen, so training carries on after the 12 hour game restarts."""
-import ctypes
 import os
 import re
+import subprocess
 import sys
 import time
-from ctypes import wintypes
 
 import psutil
 
 import paths
+import system
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LOG = os.path.join(ROOT, "logs", "auto_click.log")
@@ -30,18 +30,6 @@ VK_MENU = 0x12
 KEYUP = 2
 MOUSE_DOWN = 2
 MOUSE_UP = 4
-
-user32 = ctypes.windll.user32
-user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
-user32.MoveWindow.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wintypes.BOOL]
-user32.SetForegroundWindow.argtypes = [wintypes.HWND]
-user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
-user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
-user32.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
-user32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
-user32.VkKeyScanW.argtypes = [wintypes.WCHAR]
-user32.VkKeyScanW.restype = ctypes.c_short
-window_callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
 
 def write_log(message):
@@ -105,60 +93,134 @@ def profile_y():
         return FIRST_ROW_Y
 
 
-def window_of(pid):
-    found = []
+if system.IS_WINDOWS:
+    import ctypes
+    from ctypes import wintypes
 
-    def check(hwnd, _):
-        owner = wintypes.DWORD()
-        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
-        if owner.value == pid and user32.IsWindowVisible(hwnd) and user32.GetWindowTextLengthW(hwnd) > 0:
-            found.append(hwnd)
-        return True
+    user32 = ctypes.windll.user32
+    user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+    user32.MoveWindow.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wintypes.BOOL]
+    user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+    user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user32.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
+    user32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+    user32.VkKeyScanW.argtypes = [wintypes.WCHAR]
+    user32.VkKeyScanW.restype = ctypes.c_short
+    window_callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
-    user32.EnumWindows(window_callback(check), 0)
-    return found[0] if found else None
+    def window_of(pid):
+        found = []
 
+        def check(hwnd, _):
+            owner = wintypes.DWORD()
+            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+            if owner.value == pid and user32.IsWindowVisible(hwnd) and user32.GetWindowTextLengthW(hwnd) > 0:
+                found.append(hwnd)
+            return True
 
-def posted_click(hwnd):
-    position = (profile_y() << 16) | PROFILE_X
-    user32.PostMessageW(hwnd, WM_MOUSEMOVE, 0, position)
-    time.sleep(0.2)
-    user32.PostMessageW(hwnd, WM_LBUTTONDOWN, 1, position)
-    time.sleep(0.12)
-    user32.PostMessageW(hwnd, WM_LBUTTONUP, 0, position)
+        user32.EnumWindows(window_callback(check), 0)
+        return found[0] if found else None
 
+    def posted_click(hwnd):
+        position = (profile_y() << 16) | PROFILE_X
+        user32.PostMessageW(hwnd, WM_MOUSEMOVE, 0, position)
+        time.sleep(0.2)
+        user32.PostMessageW(hwnd, WM_LBUTTONDOWN, 1, position)
+        time.sleep(0.12)
+        user32.PostMessageW(hwnd, WM_LBUTTONUP, 0, position)
 
-def bring_forward(hwnd):
-    user32.keybd_event(VK_MENU, 0, 0, None)
-    user32.keybd_event(VK_MENU, 0, KEYUP, None)
-    user32.ShowWindow(hwnd, 9)
-    user32.SetForegroundWindow(hwnd)
-    time.sleep(0.4)
+    def bring_forward(hwnd):
+        user32.keybd_event(VK_MENU, 0, 0, None)
+        user32.keybd_event(VK_MENU, 0, KEYUP, None)
+        user32.ShowWindow(hwnd, 9)
+        user32.SetForegroundWindow(hwnd)
+        time.sleep(0.4)
 
+    def toggle_console(hwnd):
+        bring_forward(hwnd)
+        key = user32.VkKeyScanW("`") & 0xFF
+        scan = user32.MapVirtualKeyW(key, 0)
+        user32.keybd_event(key, scan, 0, None)
+        time.sleep(0.12)
+        user32.keybd_event(key, scan, KEYUP, None)
+        time.sleep(0.6)
 
-def toggle_console(hwnd):
-    bring_forward(hwnd)
-    key = user32.VkKeyScanW("`") & 0xFF
-    scan = user32.MapVirtualKeyW(key, 0)
-    user32.keybd_event(key, scan, 0, None)
-    time.sleep(0.12)
-    user32.keybd_event(key, scan, KEYUP, None)
-    time.sleep(0.6)
+    def real_click(hwnd):
+        bring_forward(hwnd)
+        point = wintypes.POINT(PROFILE_X, profile_y())
+        user32.ClientToScreen(hwnd, ctypes.byref(point))
+        before = wintypes.POINT()
+        user32.GetCursorPos(ctypes.byref(before))
+        user32.SetCursorPos(point.x, point.y)
+        time.sleep(0.3)
+        user32.mouse_event(MOUSE_DOWN, 0, 0, 0, None)
+        time.sleep(0.12)
+        user32.mouse_event(MOUSE_UP, 0, 0, 0, None)
+        time.sleep(0.3)
+        user32.SetCursorPos(before.x, before.y)
 
+    def screen_size():
+        return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
-def real_click(hwnd):
-    bring_forward(hwnd)
-    point = wintypes.POINT(PROFILE_X, profile_y())
-    user32.ClientToScreen(hwnd, ctypes.byref(point))
-    before = wintypes.POINT()
-    user32.GetCursorPos(ctypes.byref(before))
-    user32.SetCursorPos(point.x, point.y)
-    time.sleep(0.3)
-    user32.mouse_event(MOUSE_DOWN, 0, 0, 0, None)
-    time.sleep(0.12)
-    user32.mouse_event(MOUSE_UP, 0, 0, 0, None)
-    time.sleep(0.3)
-    user32.SetCursorPos(before.x, before.y)
+    def move_window(hwnd, x, y, width, height):
+        user32.MoveWindow(hwnd, x, y, width, height, True)
+
+    def minimize_training_terminal():
+        found = []
+
+        def check(hwnd, _):
+            title = ctypes.create_unicode_buffer(300)
+            kind = ctypes.create_unicode_buffer(100)
+            user32.GetWindowTextW(hwnd, title, 300)
+            user32.GetClassNameW(hwnd, kind, 100)
+            if user32.IsWindowVisible(hwnd) and kind.value == "CASCADIA_HOSTING_WINDOW_CLASS" and title.value.lower().endswith("powershell.exe"):
+                found.append(hwnd)
+            return True
+
+        user32.EnumWindows(window_callback(check), 0)
+        for hwnd in found:
+            user32.ShowWindow(hwnd, 6)
+        write_log(f"minimized {len(found)} terminal windows")
+
+else:
+
+    def xdotool(*args):
+        try:
+            return subprocess.run(["xdotool", *[str(a) for a in args]], capture_output=True, text=True, timeout=10).stdout.strip()
+        except (OSError, subprocess.TimeoutExpired):
+            return ""
+
+    def window_of(pid):
+        found = xdotool("search", "--onlyvisible", "--pid", pid, "--name", ".").split()
+        return found[0] if found else None
+
+    def posted_click(window):
+        xdotool("mousemove", "--window", window, PROFILE_X, profile_y(), "click", "--window", window, 1)
+
+    def bring_forward(window):
+        xdotool("windowmap", window)
+        xdotool("windowactivate", "--sync", window)
+        time.sleep(0.4)
+
+    def toggle_console(window):
+        bring_forward(window)
+        xdotool("key", "--window", window, "grave")
+        time.sleep(0.6)
+
+    def real_click(window):
+        bring_forward(window)
+        xdotool("mousemove", "--window", window, PROFILE_X, profile_y(), "click", 1, "mousemove", "restore")
+
+    def screen_size():
+        size = xdotool("getdisplaygeometry").split()
+        return (int(size[0]), int(size[1])) if len(size) == 2 else (1920, 1080)
+
+    def move_window(window, x, y, width, height):
+        xdotool("windowsize", window, width, height, "windowmove", window, x, y)
+
+    def minimize_training_terminal():
+        pass
 
 
 def arrange_games():
@@ -166,46 +228,27 @@ def arrange_games():
         write_log("left game windows at their own size (logs/no_arrange)")
         minimize_training_terminal()
         return
-    width = user32.GetSystemMetrics(0) // 2
-    height = user32.GetSystemMetrics(1) // 2
+    width, height = (size // 2 for size in screen_size())
     for slot, pid in enumerate(sorted(game_pids())[:2]):
-        hwnd = window_of(pid)
-        if hwnd:
-            user32.MoveWindow(hwnd, slot * width, 0, width, height, True)
+        window = window_of(pid)
+        if window:
+            move_window(window, slot * width, 0, width, height)
     write_log("arranged games side by side")
     minimize_training_terminal()
 
 
-def minimize_training_terminal():
-    found = []
-
-    def check(hwnd, _):
-        title = ctypes.create_unicode_buffer(300)
-        kind = ctypes.create_unicode_buffer(100)
-        user32.GetWindowTextW(hwnd, title, 300)
-        user32.GetClassNameW(hwnd, kind, 100)
-        if user32.IsWindowVisible(hwnd) and kind.value == "CASCADIA_HOSTING_WINDOW_CLASS" and title.value.lower().endswith("powershell.exe"):
-            found.append(hwnd)
-        return True
-
-    user32.EnumWindows(window_callback(check), 0)
-    for hwnd in found:
-        user32.ShowWindow(hwnd, 6)
-    write_log(f"minimized {len(found)} terminal windows")
-
-
 def try_game(pid, attempt):
-    hwnd = window_of(pid)
-    if not hwnd:
+    window = window_of(pid)
+    if not window:
         return
     if attempt < POSTED_ATTEMPTS:
-        posted_click(hwnd)
+        posted_click(window)
         write_log(f"game {pid}: posted click {attempt + 1}")
         return
     if (attempt - POSTED_ATTEMPTS) % 3 == 0:
-        toggle_console(hwnd)
+        toggle_console(window)
         write_log(f"game {pid}: toggled console")
-    real_click(hwnd)
+    real_click(window)
     write_log(f"game {pid}: real click, attempt {attempt + 1}")
 
 

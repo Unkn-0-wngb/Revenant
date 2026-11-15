@@ -7,11 +7,11 @@ import shutil
 import subprocess
 import sys
 import time
-import winreg
 
 import psutil
 
 import paths
+import system
 
 RESULTS = os.path.join(paths.ROOT, "machine.json")
 CONFIG = os.path.join(paths.LINESIGHT, "config_files", "config.py")
@@ -25,6 +25,17 @@ def make_config_copy():
 
 
 def cpu_name():
+    if not system.IS_WINDOWS:
+        try:
+            with open("/proc/cpuinfo", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("model name"):
+                        return line.split(":", 1)[1].strip()
+        except OSError:
+            pass
+        return platform.processor()
+    import winreg
+
     try:
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0") as key:
             return winreg.QueryValueEx(key, "ProcessorNameString")[0].strip()
@@ -34,9 +45,9 @@ def cpu_name():
 
 def gpu_from_nvidia_smi():
     try:
-        out = subprocess.run(
+        out = system.run_quietly(
             ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=10, creationflags=0x08000000,
+            capture_output=True, text=True, timeout=10,
         ).stdout.strip().splitlines()
     except (OSError, subprocess.SubprocessError):
         return None
@@ -57,7 +68,7 @@ def hardware():
         "ram_free_gb": round(memory.available / GB, 1),
         "disk_free_gb": round(disk.free / GB, 1),
         "gpu": gpu_from_nvidia_smi(),
-        "windows": platform.version(),
+        "windows": platform.version() if system.IS_WINDOWS else platform.platform(),
     }
 
 
@@ -185,8 +196,8 @@ def run_and_save():
     bench = None
     error = None
     try:
-        out = subprocess.run([paths.VENV_PYTHON if os.path.exists(paths.VENV_PYTHON) else sys.executable, os.path.join(paths.ROOT, "machine.py"), "--benchmark"],
-                             capture_output=True, text=True, timeout=600, cwd=paths.ROOT, creationflags=0x08000000)
+        out = system.run_quietly([paths.VENV_PYTHON if os.path.exists(paths.VENV_PYTHON) else sys.executable, os.path.join(paths.ROOT, "machine.py"), "--benchmark"],
+                             capture_output=True, text=True, timeout=600, cwd=paths.ROOT)
         line = [l for l in out.stdout.splitlines() if l.startswith("{")]
         bench = json.loads(line[-1]) if line else None
         if bench is None:

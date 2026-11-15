@@ -22,6 +22,7 @@ from trackmania_rl.tmi_interaction.tminterface2 import MessageType, TMInterface
 
 import auto_profile_click
 import paths
+import system
 
 PORT = user_config.base_tmi_port + paths.BRUTEFORCE_PORT_OFFSET
 SPEED = 200
@@ -57,19 +58,7 @@ def start_actions():
 
 
 def launch_game():
-    command = (
-        'powershell -executionPolicy bypass -command "& {'
-        f" $process = start-process -FilePath '{user_config.windows_TMLoader_path}'"
-        " -PassThru -ArgumentList "
-        f'\'run TmForever "{user_config.windows_TMLoader_profile_name}" /configstring=\\"set custom_port {PORT}\\"\';'
-        ' echo exit $process.id}"'
-    )
-    loader = int(subprocess.check_output(command, cwd=os.path.dirname(user_config.windows_TMLoader_path)).decode().split("\r\n")[1])
-    while True:
-        for p in psutil.process_iter(["name", "ppid"]):
-            if (p.info["name"] or "").lower() == "tmforever.exe" and p.info["ppid"] == loader:
-                return p.pid
-        time.sleep(1)
+    return system.start_game(user_config.windows_TMLoader_path, user_config.windows_TMLoader_profile_name, PORT)
 
 
 def click_profile(pid, connected):
@@ -237,7 +226,7 @@ def main():
             iface.close()
         except OSError:
             pass
-        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True)
+        system.kill_tree(pid)
 
 
 if __name__ == "__main__":

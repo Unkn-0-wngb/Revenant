@@ -19,7 +19,7 @@ trackmania_base_path = Path(paths.TRACKMANIA)
 
 base_tmi_port = 8478
 
-linux_launch_game_path = "path_to_be_filled_only_if_on_linux"
+linux_launch_game_path = str(Path(paths.ROOT) / "launch_game.sh")
 
 windows_TMLoader_path = Path(paths.TMLOADER_EXE)
 

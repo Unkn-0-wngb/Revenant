@@ -69,6 +69,20 @@ Don't judge from training laps, they include random exploration. Run `benchmark.
 **Ports already in use.**
 Something else is using one of Revenant's ports (8478 to 8487 by default: training games from 8478, the lap follower on 8485, bruteforce on 8486, the benchmark on 8487). Press *Fix* next to *Network ports* and Revenant moves to free ones.
 
+## Linux
+
+**`./revenant.sh` stops with a list of packages.**
+Install them with your package manager and run it again. Python has to be 3.11.
+
+**Training sits at `Connected` and no game appears, or the games don't start.**
+Run `./launch_game.sh 8478` on its own and read what Wine says. The usual causes are TMLoader not being in the Wine prefix (`~/.wine`, or wherever `WINEPREFIX` points), or TMLoader not knowing where the game is: the Setup tab fixes that one.
+
+**The games are slow.**
+`winetricks dxvk` and installing `gamemode` (used automatically when it's there) both help.
+
+**The profile click doesn't land.**
+It uses `xdotool`, which needs an X11 session or XWayland. Check `xdotool search --name TrackMania` finds the game window.
+
 ## Logs worth knowing about
 
 | File | What's in it |

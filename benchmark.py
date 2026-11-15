@@ -13,8 +13,13 @@ import torch
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LINESIGHT = Path(ROOT) / "linesight"
+sys.path.insert(0, ROOT)
 sys.path.insert(0, str(LINESIGHT))
 os.chdir(LINESIGHT)
+
+import machine
+
+machine.make_config_copy()
 
 from config_files import config_copy
 from config_files.all_maps import all_maps
@@ -24,6 +29,7 @@ from trackmania_rl.tmi_interaction import game_instance_manager
 
 import auto_profile_click
 import paths
+import system
 
 SUITE = ["A07", "A11", "B01", "B10", "C01", "C08", "D01", "D03"]
 PORT = config_copy.base_tmi_port + paths.BENCHMARK_PORT_OFFSET
@@ -136,7 +142,7 @@ def main():
         except Exception:
             pass
         if tmi.tm_process_id:
-            os.system(f"taskkill /PID {tmi.tm_process_id} /T /F >nul 2>&1")
+            system.kill_tree(tmi.tm_process_id)
     print(f"Saved {out}")
 
 

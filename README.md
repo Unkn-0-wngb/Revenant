@@ -9,6 +9,7 @@
 </p>
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0d0d0d?style=flat-square&logo=windows">
+  <img src="https://img.shields.io/badge/Linux-experimental-0d0d0d?style=flat-square&logo=linux">
   <img src="https://img.shields.io/badge/NVIDIA-CUDA-0d0d0d?style=flat-square&logo=nvidia">
   <img src="https://img.shields.io/badge/Python-3.11-0d0d0d?style=flat-square&logo=python">
   <img src="https://img.shields.io/badge/licence-MIT-00c4ac?style=flat-square">
@@ -33,6 +34,7 @@
 - [What it can do](#what-it-can-do)
 - [The dashboard](#the-dashboard)
 - [What you need](#what-you-need)
+- [Linux (experimental)](#linux-experimental)
 - [How it works](#how-it-works)
 - [Project layout](#project-layout)
 - [Credits](#credits)
@@ -136,7 +138,7 @@ Open it with `Revenant.bat`. It types out the Revenant logo while it reads the t
 
 | | Minimum | What I used |
 |---|---|---|
-| OS | Windows 10 or 11 | Windows 11 |
+| OS | Windows 10 or 11, or Linux (experimental, see below) | Windows 11 |
 | GPU | NVIDIA with 4 GB, GTX 10 series or newer | GTX 1060 6GB |
 | CPU | 4 threads | i7-4770 (4 cores, 8 threads) |
 | RAM | 8 GB | 12 GB |
@@ -148,6 +150,18 @@ RTX 50 series cards need a newer PyTorch than the one the AI is pinned to, so th
 
 TMLoader injects into the game, so some antivirus programs flag it. That's a false positive; add its folder as an exception if yours complains.
 
+macOS isn't supported: Macs have no NVIDIA graphics, and the AI is built on CUDA.
+
+## Linux (experimental)
+
+Revenant also runs on Linux, with the game running under Wine the same way the original Linesight does it. It's newer than the Windows version: every push is checked on Ubuntu (install, the tests, every Setup check and the dashboard starting), but a full training run on Linux hasn't been confirmed yet, so please [report](../../issues/new/choose) what happens, good or bad.
+
+1. Install the system packages: `sudo apt install python3.11 python3.11-venv python3.11-dev python3-tk wine xdotool libxdo3 liblzo2-dev build-essential` (the names are similar on Fedora and Arch). You also need the NVIDIA driver, and the game from Steam.
+2. Run `./revenant.sh`. The first time it runs `setup.sh`, which makes `venv/` and installs the AI's libraries (about 3 GB). If anything above is missing it tells you what to install.
+3. Follow the Setup tab, as on Windows. Install TMLoader by running its installer with `wine` and keeping the default folder, so it ends up in your Wine prefix (`~/.wine` unless you set `WINEPREFIX`).
+
+`launch_game.sh` is what training uses to start each game: it runs TMLoader under Wine with TMInterface listening on the port it's given. If games don't start, run `./launch_game.sh 8478` on its own and see what Wine says. `winetricks dxvk` and `gamemode` can help the frame rate.
+
 ## How it works
 
 Revenant is built on [Linesight](https://github.com/Linesight-RL/linesight), an IQN reinforcement learning agent that talks to the game through TMInterface. Every 50 ms it gets a small greyscale picture of the screen plus the car's speed, angle, wheel contacts and the next stretch of the racing line, and picks one of 12 key combinations. It's rewarded for getting further along the line in less time.
@@ -157,7 +171,10 @@ Revenant is built on [Linesight](https://github.com/Linesight-RL/linesight), an 
 ## Project layout
 
 ```
-Revenant.bat                                   start here
+Revenant.bat, revenant.sh                      start here (Windows, Linux)
+setup.ps1, setup.sh                            installs Python and the AI's libraries
+train.ps1, train.sh, launch_game.sh            start training, and start a game on Linux
+system.py                                      the parts that differ between Windows and Linux
 dashboard.py, levels_window.py, theme.py       the main window, the Levels overview, shared colours and fonts
 intro.py                                       the dashboard's opening animation
 control_window.py, controls.py                 the Controls window and what it does

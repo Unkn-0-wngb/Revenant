@@ -1,0 +1,49 @@
+name: Linux
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  setup-and-start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wine xdotool libxdo3 liblzo2-dev build-essential xvfb python3-tk
+      - name: Scripts parse
+        run: bash -n setup.sh revenant.sh train.sh launch_game.sh
+      - name: setup.sh
+        env:
+          REVENANT_CPU_TORCH: "1"
+        run: bash setup.sh
+      - name: Every module imports
+        run: |
+          for module in paths system controls checks machine auto_profile_click theme benchmark level_stats; do
+            venv/bin/python -c "import $module" || exit 1
+          done
+          xvfb-run -a venv/bin/python -c "import dashboard, control_window, levels_window, intro"
+      - name: Tests
+        working-directory: linesight
+        run: ../venv/bin/python -m unittest discover -s tests -v
+      - name: Setup checks run
+        run: |
+          venv/bin/python - <<'EOF'
+          import checks
+          for name, check, fix, label in checks.CHECKS:
+              ok, detail = check()
+              print(f"{'ok' if ok else 'NO'}  {name}: {detail}")
+          EOF
+      - name: Dashboard starts
+        run: |
+          xvfb-run -a timeout 40 venv/bin/python dashboard.py > dashboard.log 2>&1 || true
+          cat dashboard.log
+          ! grep -q Traceback dashboard.log

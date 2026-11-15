@@ -4,3 +4,4 @@
 *.Gbx binary
 *.zip binary
 *.dds binary
+*.sh text eol=lf
