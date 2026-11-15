@@ -12,6 +12,7 @@ import zipfile
 import controls
 import machine
 import paths
+import system
 
 SAVE = os.path.join(paths.LINESIGHT, "save")
 RUN = os.path.join(SAVE, "all_levels_run1")
@@ -25,7 +26,10 @@ def check_packages():
 
 
 def fix_packages():
-    subprocess.Popen(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", os.path.join(paths.ROOT, "setup.ps1")], cwd=paths.ROOT, creationflags=0x00000010)
+    if system.IS_WINDOWS:
+        system.launch(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", os.path.join(paths.ROOT, "setup.ps1")], hidden=False)
+    else:
+        system.launch(["bash", os.path.join(paths.ROOT, "setup.sh")], hidden=False)
     return "Setup is running in its own window. Reopen the dashboard when it finishes."
 
 
@@ -51,17 +55,23 @@ def check_game():
 
 
 def fix_game():
-    os.startfile(paths.STEAM_GAME_PAGE)
+    system.open_path(paths.STEAM_GAME_PAGE)
     return "Asked Steam to install TrackMania Nations Forever (it's free). Check again when it's done."
 
 
 def check_tmloader():
+    if not system.IS_WINDOWS and not shutil.which("wine"):
+        return False, "Wine isn't installed"
     return os.path.exists(paths.TMLOADER_EXE), "installed" if os.path.exists(paths.TMLOADER_EXE) else "not installed"
 
 
 def fix_tmloader():
+    if not system.IS_WINDOWS and not shutil.which("wine"):
+        return "Install Wine with your package manager (for example sudo apt install wine), then check again."
     webbrowser.open(paths.TMLOADER_PAGE)
-    return "Opened the TMLoader page. Install it to the default folder, then check again."
+    if system.IS_WINDOWS:
+        return "Opened the TMLoader page. Install it to the default folder, then check again."
+    return f"Opened the TMLoader page. Run its installer with wine and keep the default folder, so it ends up in {paths.TMLOADER}, then check again."
 
 
 def tmloader_game_setting():
@@ -74,6 +84,8 @@ def tmloader_game_setting():
 
 def check_tmloader_game():
     folder = tmloader_game_setting()
+    if folder and not system.IS_WINDOWS:
+        folder = paths.wine_to_unix(folder)
     ok = bool(folder) and os.path.exists(os.path.join(folder, "TmForever.exe"))
     return ok, "set up" if ok else "doesn't know where the game is"
 
@@ -84,7 +96,8 @@ def fix_tmloader_game():
         return "Install the game first."
     os.makedirs(os.path.dirname(paths.TMLOADER_GAME), exist_ok=True)
     with open(paths.TMLOADER_GAME, "w", encoding="utf-8") as f:
-        f.write("install: '" + folder.replace("'", "''") + "'\n")
+        setting = folder if system.IS_WINDOWS else paths.unix_to_wine(folder)
+        f.write("install: '" + setting.replace("'", "''") + "'\n")
     return f"Pointed TMLoader at {folder}."
 
 
@@ -137,7 +150,7 @@ def check_maps():
 
 def fix_maps():
     script = os.path.join(paths.LINESIGHT, "scripts", "tools", "get_official_maps.py")
-    subprocess.Popen([paths.VENV_PYTHON, script], cwd=paths.LINESIGHT, creationflags=0x00000010)
+    system.launch([paths.VENV_PYTHON, script], hidden=False, cwd=paths.LINESIGHT)
     return "Downloading the official maps in a separate window."
 
 

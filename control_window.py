@@ -8,6 +8,7 @@ import numpy as np
 import checks
 import controls
 import machine
+import system
 import theme
 
 STATUS_EVERY_MS = 3000
@@ -87,7 +88,7 @@ class ControlWindow:
         else:
             self.setup_summary.config(text="All set. Revenant is ready to train on this PC.", fg=self.c["good"])
         for i, (name, ok, detail, fix, label) in enumerate(results):
-            mark = tk.Label(self.check_rows, text="✓" if ok else "!", bg=self.c["page"], fg=self.c["good"] if ok else self.c["warning"], font=(self.font, 11, "bold"), width=2)
+            mark = tk.Label(self.check_rows, text="âœ“" if ok else "!", bg=self.c["page"], fg=self.c["good"] if ok else self.c["warning"], font=(self.font, 11, "bold"), width=2)
             mark.grid(row=i, column=0, sticky="w", pady=3)
             self.label(self.check_rows, name, 10, self.c["ink"]).grid(row=i, column=1, sticky="w", padx=(0, 10))
             info = self.label(self.check_rows, detail, 9, self.c["muted"])
@@ -238,7 +239,7 @@ class ControlWindow:
         links = tk.Frame(box, bg=box["bg"])
         links.grid(row=2, column=0, columnspan=8, sticky="w", pady=(6, 0))
         ttk.Button(links, text="Open training log", command=self.open_log).pack(side="left", padx=(0, 6))
-        ttk.Button(links, text="Open project folder", command=lambda: os.startfile(controls.ROOT)).pack(side="left")
+        ttk.Button(links, text="Open project folder", command=lambda: system.open_path(controls.ROOT)).pack(side="left")
 
         box = self.section(tab, "Focus", "one level until a time is beaten")
         level, target = controls.focus()
@@ -298,7 +299,7 @@ class ControlWindow:
     def open_log(self):
         log = os.path.join(controls.ROOT, "logs", "train_run1.log")
         if os.path.exists(log):
-            os.startfile(log)
+            system.open_path(log)
         else:
             self.say("There's no training log yet. It appears once training has run.")
 
@@ -376,7 +377,7 @@ class ControlWindow:
         self.search = self.entry(top, "", 24)
         self.search.pack(side="left", padx=6)
         self.search.bind("<KeyRelease>", lambda _: self.fill_settings())
-        ttk.Button(top, text="Open config.py", command=lambda: os.startfile(controls.CONFIG)).pack(side="right")
+        ttk.Button(top, text="Open config.py", command=lambda: system.open_path(controls.CONFIG)).pack(side="right")
 
         self.tree = ttk.Treeview(tab, columns=("value",), show="tree headings", height=12)
         self.tree.heading("#0", text="Setting")

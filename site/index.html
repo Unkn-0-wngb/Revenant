@@ -97,7 +97,7 @@
       </div>
       <ul class="specs">
         <li>Free and open source</li>
-        <li>Windows 10 or 11</li>
+        <li>Windows 10 or 11, Linux experimental</li>
         <li>NVIDIA graphics card</li>
       </ul>
     </div>
@@ -324,7 +324,7 @@
   <section class="start" id="start">
     <div class="section-head">
       <h2>Run it yourself</h2>
-      <p>You need Windows 10 or 11, an NVIDIA card with 4&nbsp;GB or more, and TrackMania Nations Forever, which is free on Steam.</p>
+      <p>You need Windows 10 or 11, an NVIDIA card with 4&nbsp;GB or more, and TrackMania Nations Forever, which is free on Steam. Linux works too, as an experimental version: see below.</p>
     </div>
     <ol class="steps">
       <li>
@@ -333,7 +333,7 @@
       </li>
       <li>
         <h3>Open Revenant.bat</h3>
-        <p>The first time, it installs Python 3.11 if you need it and the AI's libraries, about 3&nbsp;GB. After that it opens straight to the dashboard.</p>
+        <p>The first time, it installs Python 3.11 if you need it and the AI's libraries, about 3&nbsp;GB. After that it opens straight to the dashboard. On Linux it's <code>./revenant.sh</code>.</p>
       </li>
       <li>
         <h3>Follow the Setup tab</h3>
@@ -370,10 +370,11 @@
             <tr><th scope="row">CPU</th><td>4 threads</td><td>i7-4770</td></tr>
             <tr><th scope="row">RAM</th><td>8&nbsp;GB</td><td>12&nbsp;GB</td></tr>
             <tr><th scope="row">Disk</th><td>10&nbsp;GB free</td><td></td></tr>
-            <tr><th scope="row">System</th><td>Windows 10 or 11</td><td>Windows 11</td></tr>
+            <tr><th scope="row">System</th><td>Windows 10 or 11, or Linux (experimental)</td><td>Windows 11</td></tr>
           </tbody>
         </table>
-        <p class="small">RTX 50 series cards need a newer PyTorch than the AI is pinned to, so they won't work yet. AMD and Intel graphics can't run it, it needs CUDA.</p>
+        <p class="small">RTX 50 series cards need a newer PyTorch than the AI is pinned to, so they won't work yet. AMD and Intel graphics can't run it, it needs CUDA, and that also rules out Macs.</p>
+        <p class="small">On Linux the game runs under Wine, the way the original Linesight does it. Install the packages the README lists, run <code>./revenant.sh</code> and follow the Setup tab. It's checked on Ubuntu with every change, but a full training run on Linux hasn't been confirmed yet, so reports are very welcome.</p>
       </div>
     </div>
   </section>

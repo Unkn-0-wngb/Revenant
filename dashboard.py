@@ -1,7 +1,5 @@
 import collections
-import ctypes
 import io
-import msvcrt
 import multiprocessing
 import os
 import queue
@@ -9,7 +7,6 @@ import re
 import sys
 import time
 import tkinter as tk
-from ctypes import wintypes
 from tkinter import ttk
 
 import joblib
@@ -28,6 +25,7 @@ from PIL import Image, ImageTk
 import checks
 import controls
 import machine
+import system
 import theme
 from control_window import ControlWindow
 from intro import Intro
@@ -62,46 +60,6 @@ SPEED_MAP = LinearSegmentedColormap.from_list("speed", ["#06302c", "#00796b", "#
 TAG_PREFIXES = ("eval_race_time_finished_", "explo_race_time_finished_", "eval_race_finished_", "explo_race_finished_")
 
 
-class MemoryStatus(ctypes.Structure):
-    _fields_ = [
-        ("length", wintypes.DWORD),
-        ("load", wintypes.DWORD),
-        ("total_phys", ctypes.c_ulonglong),
-        ("avail_phys", ctypes.c_ulonglong),
-        ("total_commit", ctypes.c_ulonglong),
-        ("avail_commit", ctypes.c_ulonglong),
-        ("total_virtual", ctypes.c_ulonglong),
-        ("avail_virtual", ctypes.c_ulonglong),
-        ("avail_extended", ctypes.c_ulonglong),
-    ]
-
-
-def commit_free_gb():
-    status = MemoryStatus()
-    status.length = ctypes.sizeof(MemoryStatus)
-    ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
-    return status.avail_commit / 2**30
-
-
-def read_without_blocking_replace(path):
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    kernel32.CreateFileW.restype = ctypes.c_void_p
-    kernel32.CreateFileW.argtypes = [
-        wintypes.LPCWSTR,
-        wintypes.DWORD,
-        wintypes.DWORD,
-        ctypes.c_void_p,
-        wintypes.DWORD,
-        wintypes.DWORD,
-        ctypes.c_void_p,
-    ]
-    handle = kernel32.CreateFileW(path, 0x80000000, 7, None, 3, 0, None)
-    if handle is None or handle == ctypes.c_void_p(-1).value:
-        raise OSError(ctypes.get_last_error())
-    with os.fdopen(msvcrt.open_osfhandle(handle, os.O_RDONLY), "rb") as f:
-        return f.read()
-
-
 def load_zones(path):
     z = np.load(path)
     z = np.vstack((z[0] + (z[0] - z[1]) * np.arange(20, 0, -1)[:, None], z, z[-1] + (z[-1] - z[-2]) * np.arange(1, 1001)[:, None]))
@@ -121,7 +79,7 @@ def car_position(state_float, zone_idx, zones):
 
 
 def fastest_lap_path(path, zones):
-    laps = joblib.load(io.BytesIO(read_without_blocking_replace(path)))
+    laps = joblib.load(io.BytesIO(system.read_shared(path)))
     race_time, lap = laps[0]
     n = len(lap["wall_contact"])
     floats = [np.array(lap["state_float"][i], dtype=float) for i in range(n)]
@@ -203,7 +161,7 @@ class Reader:
         key = (short, os.path.getmtime(path))
         changed_level = self.path_key is None or self.path_key[0] != short
         due = changed_level or time.time() - self.path_time >= MAP_REFRESH_S
-        if key != self.path_key and due and commit_free_gb() >= MIN_COMMIT_FOR_MAP_GB:
+        if key != self.path_key and due and system.commit_free_gb() >= MIN_COMMIT_FOR_MAP_GB:
             zones = load_zones(os.path.join(MAPS_DIR, LINE_FILES[short]))
             self.path = fastest_lap_path(path, zones)
             self.path_key = key
@@ -260,7 +218,7 @@ class Reader:
             "log_age": log_age,
             "alive": alive,
             "games": games,
-            "commit": commit_free_gb(),
+            "commit": system.commit_free_gb(),
             "path": self.lap_path(short),
             "read_at": time.strftime("%H:%M:%S"),
         }
@@ -699,7 +657,7 @@ class Dashboard:
 
 
 def main():
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    system.sharp_text()
     machine.make_config_copy()
     if controls.profile() != controls.AI_PROFILE and not controls.training_running():
         try:

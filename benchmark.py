@@ -24,6 +24,7 @@ from trackmania_rl.tmi_interaction import game_instance_manager
 
 import auto_profile_click
 import paths
+import system
 
 SUITE = ["A07", "A11", "B01", "B10", "C01", "C08", "D01", "D03"]
 PORT = config_copy.base_tmi_port + paths.BENCHMARK_PORT_OFFSET
@@ -136,7 +137,7 @@ def main():
         except Exception:
             pass
         if tmi.tm_process_id:
-            os.system(f"taskkill /PID {tmi.tm_process_id} /T /F >nul 2>&1")
+            system.kill_tree(tmi.tm_process_id)
     print(f"Saved {out}")
 
 

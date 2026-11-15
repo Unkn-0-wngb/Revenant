@@ -14,6 +14,7 @@ import lzo
 import psutil
 
 import paths
+import system
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(ROOT, "linesight", "config_files")
@@ -26,11 +27,10 @@ PYTHON = paths.VENV_PYTHON
 PYTHONW = paths.VENV_PYTHONW
 BUILTIN = paths.TMI_BUILTIN
 PROFILES = paths.PROFILES
-DETACHED = 0x00000008 | 0x00000200 | 0x08000000
 AI_PROFILE = "Revenant"
 KEYBOARD_ID = b"6f1d2b61-d5a0-11cf-bfc7-444553540000"
 
-TRAINING = ("train.ps1", "scripts\\train.py", "multiprocessing.spawn")
+TRAINING = ("train.ps1", "train.sh", "scripts\\train.py", "scripts/train.py", "multiprocessing.spawn", "multiprocessing.forkserver")
 HELPERS = {
     "demo starts": "refeed.py",
     "lap follower": "follow_line.py",
@@ -89,8 +89,7 @@ def close_games():
 
 
 def launch(args, hidden=True):
-    flags = DETACHED if hidden else 0x00000010
-    subprocess.Popen(args, cwd=ROOT, creationflags=flags, close_fds=True)
+    system.launch(args, hidden=hidden, cwd=ROOT)
 
 
 def start_training():
@@ -102,7 +101,10 @@ def start_training():
         use_ai_profile()
     if not helper_running("clicker"):
         launch([PYTHONW, os.path.join(ROOT, "auto_profile_click.py")])
-    launch(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Minimized", "-File", os.path.join(ROOT, "train.ps1")], hidden=False)
+    if system.IS_WINDOWS:
+        launch(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Minimized", "-File", os.path.join(ROOT, "train.ps1")], hidden=False)
+    else:
+        launch(["bash", os.path.join(ROOT, "train.sh")])
     return "Training is starting. The games take about a minute to load."
 
 

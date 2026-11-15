@@ -1,4 +1,5 @@
 import ctypes
+import sys
 import tkinter as tk
 from tkinter import ttk
 
@@ -18,10 +19,16 @@ GOOD = "#2fbf71"
 WARNING = "#fab219"
 CRITICAL = "#e5534b"
 
-FONT = "Segoe UI"
-DISPLAY = "Bahnschrift SemiBold"
-CONDENSED = "Bahnschrift SemiBold SemiConden"
-NUMBERS = "Bahnschrift SemiBold Condensed"
+if sys.platform == "win32":
+    FONT = "Segoe UI"
+    DISPLAY = "Bahnschrift SemiBold"
+    CONDENSED = "Bahnschrift SemiBold SemiConden"
+    NUMBERS = "Bahnschrift SemiBold Condensed"
+else:
+    FONT = "DejaVu Sans"
+    DISPLAY = "DejaVu Sans"
+    CONDENSED = "DejaVu Sans Condensed"
+    NUMBERS = "DejaVu Sans Condensed"
 
 
 def dark_title(window):
