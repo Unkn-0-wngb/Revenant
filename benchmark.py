@@ -13,6 +13,7 @@ import torch
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LINESIGHT = Path(ROOT) / "linesight"
+sys.path.insert(0, ROOT)
 sys.path.insert(0, str(LINESIGHT))
 os.chdir(LINESIGHT)
 
