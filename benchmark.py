@@ -16,6 +16,10 @@ LINESIGHT = Path(ROOT) / "linesight"
 sys.path.insert(0, str(LINESIGHT))
 os.chdir(LINESIGHT)
 
+import machine
+
+machine.make_config_copy()
+
 from config_files import config_copy
 from config_files.all_maps import all_maps
 from trackmania_rl.agents import iqn
