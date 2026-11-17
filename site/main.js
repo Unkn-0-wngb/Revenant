@@ -204,24 +204,6 @@ function guard() {
   });
 }
 
-function videoPlayer() {
-  const player = document.getElementById("player");
-  if (!player) return;
-  player.addEventListener("click", (e) => {
-    e.preventDefault();
-    const frame = document.createElement("iframe");
-    frame.src = `https://www.youtube-nocookie.com/embed/${player.dataset.video}?autoplay=1&rel=0`;
-    frame.title = "My Mate Set a Time I Couldn't Beat, So I Built an AI to Beat It";
-    frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-    frame.allowFullscreen = true;
-    const box = document.createElement("div");
-    box.className = "player playing";
-    box.append(frame);
-    player.replaceWith(box);
-    frame.focus();
-  });
-}
-
 guard();
 typeIn();
 fillBoard();
@@ -229,4 +211,3 @@ filterBoard();
 trackSections();
 controlTabs();
 loadCars();
-videoPlayer();
